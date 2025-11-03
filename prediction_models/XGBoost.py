@@ -7,7 +7,7 @@ import pandas as pd
 class XGBoost:
 	def __init__(self, aggregate_data, prediction_set):
 		self.target = 'point_differential'
-		self.feature_columns = ['avg_pass_adjusted_yards_per_attempt_l5', 'avg_rushing_yards_per_attempt_l5', 'avg_turnovers_l5', 'avg_pass_adjusted_yards_per_attempt_allowed_l5', 'avg_rushing_yards_per_attempt_allowedl5', 'avg_turnovers_forced_l5', 'avg_point_differential_l5']
+		self.feature_columns = ['avg_pass_adjusted_yards_per_attempt_l5', 'avg_rushing_yards_per_attempt_l5', 'avg_turnovers_l5', 'avg_pass_adjusted_yards_per_attempt_allowed_l5', 'avg_rushing_yards_per_attempt_allowedl5', 'avg_turnovers_forced_l5', 'avg_point_differential_l5', 'days_rest']
 		X_train = self.__prepare_features(aggregate_data)
 		self.prediction_features = self.__prepare_features(prediction_set)
 		self.xgb_regressor = self.__train_model(X_train)

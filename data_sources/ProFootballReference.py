@@ -19,6 +19,7 @@ class ProFootballReference:
 		game_data_columns = [
 			'event_id',
 			'team',
+			'date',
 			'opponent',
 			'is_home',
 			'win',
