@@ -1,5 +1,6 @@
 #from data_sources.ProFootballReference import ProFootballReference
 from prediction_models.KNearest import KNearest
+from prediction_models.XGBoost import XGBoost
 from DataAggregate.DataAggregate import DataAggregate
 from data_sources.OddsAPI import OddsAPI
 #import pandas as pd
@@ -18,3 +19,6 @@ conn=sqlite3.connect('db/historical_data.db')
 
 k = KNearest(da.aggregates, da.prediction_set)
 k.predict_winner(da.prediction_set)
+
+xg = XGBoost(da.aggregates, da.prediction_set)
+xg.predict_spread(da.prediction_set)

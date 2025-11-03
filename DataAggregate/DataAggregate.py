@@ -4,7 +4,7 @@ import pandas as pd
 
 class DataAggregate:
 	def __init__(self, odds_api_key, save_api_calls=True):
-		self.team_performance_features = ['event_id', 'team', 'avg_points_scored_l5', 'avg_pass_adjusted_yards_per_attempt_l5', 'avg_rushing_yards_per_attempt_l5', 'avg_turnovers_l5', 'avg_penalty_yards_l5', 'avg_sack_yards_lost_l5', 'avg_points_allowed_l5', 'avg_pass_adjusted_yards_per_attempt_allowed_l5', 'avg_rushing_yards_per_attempt_allowedl5', 'avg_turnovers_forced_l5', 'avg_sack_yards_gained_l5']
+		self.team_performance_features = ['event_id', 'team', 'avg_points_scored_l5', 'avg_pass_adjusted_yards_per_attempt_l5', 'avg_rushing_yards_per_attempt_l5', 'avg_turnovers_l5', 'avg_penalty_yards_l5', 'avg_sack_yards_lost_l5', 'avg_points_allowed_l5', 'avg_pass_adjusted_yards_per_attempt_allowed_l5', 'avg_rushing_yards_per_attempt_allowedl5', 'avg_turnovers_forced_l5', 'avg_sack_yards_gained_l5', 'avg_point_differential_l5']
 
 		pfr = ProFootballReference()
 		oa = OddsAPI(odds_api_key)
@@ -33,6 +33,8 @@ class DataAggregate:
 			right_on = ['event_id', 'team'],
 			how = 'left'
 		).drop('team', axis=1).rename(columns=self.__get_dict_for_feature_rename('team_b'))
+		
+		game_data['team_a_point_differential'] = game_data['team_b_points_scored'] - game_data['team_a_points_scored']
 		
 		return game_data
 		
@@ -84,6 +86,11 @@ class DataAggregate:
 			lambda x: x.rolling(5, min_periods=1).mean().shift(1)
 		)
 		
+		team_performance['point_differential'] = team_performance['points_scored'] - team_performance['opp_points_scored']
+		team_performance['avg_point_differential_l5'] = team_performance.groupby('team')['point_differential'].transform(
+			lambda x: x.rolling(5, min_periods=1).mean().shift(1)
+		)
+	
 		return team_performance
 	
 	def __get_prediction_set(self, upcoming_games, recent_team_performance):
@@ -102,6 +109,7 @@ class DataAggregate:
 		).rename(columns=self.__get_dict_for_feature_rename('team_b'))
 		
 		upcoming_games['team_a_win'] = None
+		upcoming_games['team_a_point_differential'] = None
 		
 		return upcoming_games
 	
