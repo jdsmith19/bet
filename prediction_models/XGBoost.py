@@ -49,7 +49,7 @@ class XGBoost:
 		mae = mean_absolute_error(y_test, predictions)
 		rmse = np.sqrt(mean_squared_error(y_test, predictions))
 		
-		print(f"***Linear Regression Model***")
+		print(f"***XGBoost Model***")
 		print(f"Mean Absolute Error: {mae:.2f} points")
 		print(f"Root Mean Squared Error: {rmse:.2f} points")
 		
