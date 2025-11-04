@@ -4,7 +4,7 @@ import pandas as pd
 
 class DataAggregate:
 	def __init__(self, odds_api_key, save_api_calls=True):
-		self.team_performance_features = ['event_id', 'team', 'avg_points_scored_l5', 'avg_pass_adjusted_yards_per_attempt_l5', 'avg_rushing_yards_per_attempt_l5', 'avg_turnovers_l5', 'avg_penalty_yards_l5', 'avg_sack_yards_lost_l5', 'avg_points_allowed_l5', 'avg_pass_adjusted_yards_per_attempt_allowed_l5', 'avg_rushing_yards_per_attempt_allowedl5', 'avg_turnovers_forced_l5', 'avg_sack_yards_gained_l5', 'avg_point_differential_l5', 'days_rest']
+		self.team_performance_features = ['event_id', 'team', 'avg_points_scored_l5', 'avg_pass_adjusted_yards_per_attempt_l5', 'avg_rushing_yards_per_attempt_l5', 'avg_turnovers_l5', 'avg_penalty_yards_l5', 'avg_sack_yards_lost_l5', 'avg_points_allowed_l5', 'avg_pass_adjusted_yards_per_attempt_allowed_l5', 'avg_rushing_yards_per_attempt_allowedl5', 'avg_turnovers_forced_l5', 'avg_sack_yards_gained_l5', 'avg_point_differential_l5', 'days_rest', 'elo_rating', 'opp_elo_rating']
 
 		pfr = ProFootballReference()
 		oa = OddsAPI(odds_api_key)
@@ -97,7 +97,9 @@ class DataAggregate:
 		team_performance['avg_point_differential_l5'] = team_performance.groupby('team')['point_differential'].transform(
 			lambda x: x.rolling(5, min_periods=1).mean().shift(1)
 		)
-	
+		
+		team_performance = self.__calculate_elo(team_performance, k=20, initial_elo=1500)
+		print(team_performance)
 		return team_performance
 	
 	def __get_prediction_set(self, upcoming_games, recent_team_performance):
@@ -135,3 +137,28 @@ class DataAggregate:
 	def __get_dict_for_feature_rename(self, team_prefix):
 		stat_columns = [col for col in self.team_performance_features if col not in ['event_id', 'team']]
 		return {col: f'{team_prefix}_{col}' for col in stat_columns}
+	
+	def __calculate_elo(self, team_performance, k=20, initial_elo=1500):
+		team_performance = team_performance.sort_values(['team', 'date'])
+		
+		# Initialize ELO
+		elo_dict = { team: initial_elo for team in team_performance['team'].unique() }
+		
+		team_performance['elo_rating'] = 0.0
+		team_performance['opp_elo_rating'] = 0.0
+		
+		for idx, row in team_performance.iterrows():
+			team = row['team']
+			opp = row['opponent']
+			
+			team_elo = elo_dict[team]
+			opp_elo = elo_dict.get(opp, initial_elo)
+			
+			team_performance.at[idx, 'elo_rating'] = team_elo
+			team_performance.at[idx, 'opp_elo_rating'] = opp_elo
+			
+			expected = 1 / (1 + 10 ** ((opp_elo - team_elo) / 400))
+			actual = row['win']
+			elo_dict[team] = team_elo + k * (actual - expected)
+			
+		return team_performance

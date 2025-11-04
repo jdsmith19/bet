@@ -6,7 +6,7 @@ import pandas as pd
 class KNearest:
 	def __init__(self, aggregate_data, prediction_set):
 		self.target = 'win'
-		self.feature_columns = ['avg_points_scored_l5', 'avg_pass_adjusted_yards_per_attempt_l5', 'avg_rushing_yards_per_attempt_l5', 'avg_turnovers_l5', 'avg_penalty_yards_l5', 'avg_sack_yards_lost_l5', 'avg_points_allowed_l5', 'avg_pass_adjusted_yards_per_attempt_allowed_l5', 'avg_rushing_yards_per_attempt_allowedl5', 'avg_turnovers_forced_l5', 'avg_sack_yards_gained_l5','days_rest']
+		self.feature_columns = ['avg_points_scored_l5', 'avg_pass_adjusted_yards_per_attempt_l5', 'avg_rushing_yards_per_attempt_l5', 'avg_turnovers_l5', 'avg_penalty_yards_l5', 'avg_sack_yards_lost_l5', 'avg_points_allowed_l5', 'avg_pass_adjusted_yards_per_attempt_allowed_l5', 'avg_rushing_yards_per_attempt_allowedl5', 'avg_turnovers_forced_l5', 'avg_sack_yards_gained_l5','days_rest','elo_rating']
 		X_train = self.__prepare_features(aggregate_data)
 		self.prediction_features = self.__prepare_features(prediction_set)
 		self.classifier_model = self.__train_classifier(X_train)
