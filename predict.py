@@ -3,6 +3,7 @@ from prediction_models.KNearest import KNearest
 from prediction_models.XGBoost import XGBoost
 from prediction_models.LinearRegression import LinearRegression
 from prediction_models.RandomForest import RandomForest
+from prediction_models.LogisticRegression import LogisticRegression
 from DataAggregate.DataAggregate import DataAggregate
 from data_sources.OddsAPI import OddsAPI
 #import pandas as pd
@@ -30,3 +31,7 @@ lr.predict_spread(da.prediction_set)
 
 rf = RandomForest(da.aggregates, da.prediction_set)
 rf.predict_spread(da.prediction_set)
+
+** SUCKS **
+lc = LogisticRegression(da.aggregates, da.prediction_set)
+lc.predict_winner(da.prediction_set)
