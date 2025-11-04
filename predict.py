@@ -32,6 +32,5 @@ lr.predict_spread(da.prediction_set)
 rf = RandomForest(da.aggregates, da.prediction_set)
 rf.predict_spread(da.prediction_set)
 
-** SUCKS **
 lc = LogisticRegression(da.aggregates, da.prediction_set)
 lc.predict_winner(da.prediction_set)
