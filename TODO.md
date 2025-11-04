@@ -19,4 +19,9 @@ Add season reset to ELO rating.
 Add RPI
 Add Home / Away Splits
 Add rolling aggregates for at least [3,5] days
+Return data from all predictions in a JSON dictionary format
+Create a parent class for all prediction engines that the individual classes inherit from
+
+## DONE
 Add Logistic Regression
+Add Random Forest Regressor

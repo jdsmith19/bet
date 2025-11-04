@@ -1,17 +1,17 @@
 from xgboost import XGBRegressor
-from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 import numpy as np
 import pandas as pd
 
-class XGBoost:
+class RandomForest:
 	def __init__(self, aggregate_data, prediction_set):
 		self.target = 'point_differential'
 		self.feature_columns = ['avg_pass_adjusted_yards_per_attempt_l5', 'avg_rushing_yards_per_attempt_l5', 'avg_turnovers_l5', 'avg_pass_adjusted_yards_per_attempt_allowed_l5', 'avg_rushing_yards_per_attempt_allowedl5', 'avg_turnovers_forced_l5', 'avg_point_differential_l5', 'days_rest', 'elo_rating']
 		X_train = self.__prepare_features(aggregate_data)
 		self.prediction_features = self.__prepare_features(prediction_set)
-		self.lg_regressor = self.__train_regressor(X_train)
+		self.rf_regressor = self.__train_regressor(X_train)
 	
 	def __prepare_features(self, aggregate_data):		
 		feature_columns = self.__get_team_specific_feature_columns()
@@ -37,20 +37,15 @@ class XGBoost:
 		X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 		
 		# Train LogistRegressor
-		lr = Linear
-		xgb = XGBRegressor(
-			n_estimators=100,
-			max_depth=5,
-			learning_rate=0.1,
-			random_state=42
-		)
-		xgb.fit(X_train, y_train)
+		rf = RandomForestRegressor()
+		rf.fit(X_train, y_train)
 		
 		# Evaluate
-		predictions = xgb.predict(X_test)
+		predictions = rf.predict(X_test)
 		mae = mean_absolute_error(y_test, predictions)
 		rmse = np.sqrt(mean_squared_error(y_test, predictions))
 		
+		print(f"***Random Forest Model***")
 		print(f"Mean Absolute Error: {mae:.2f} points")
 		print(f"Root Mean Squared Error: {rmse:.2f} points")
 		
@@ -65,18 +60,19 @@ class XGBoost:
 		# Feature importance
 		importance = pd.DataFrame({
 			'feature': self.__get_team_specific_feature_columns(self.feature_columns),
-			'importance': xgb.feature_importances_
-		}).sort_values('importance', ascending=False)
-		print("\nFeature Importance:")
+			'importance': rf.feature_importances_
+		}).sort_values('importance', key=abs, ascending=False)
+		print("\nFeature Importances:")
 		print(importance)
-		return xgb
+		
+		return rf
 	
 	def predict_spread(self, prediction_set):
 					
 		feature_columns = self.__get_team_specific_feature_columns(prediction_columns=True)
 	
 		X_predict = prediction_set[feature_columns].copy()
-		spread_predictions = self.lg_regressor.predict(X_predict)
+		spread_predictions = self.rf_regressor.predict(X_predict)
 
 		# Add to dataframe for readability
 		results = prediction_set[['home_team', 'away_team']].copy()
@@ -88,3 +84,4 @@ class XGBoost:
 			axis=1
 		)
 		print(results)
+		return results
