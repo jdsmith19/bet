@@ -1,16 +1,17 @@
 from xgboost import XGBRegressor
+from sklearn.linear_model import LinearRegression as LinearRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 import numpy as np
 import pandas as pd
 
-class XGBoost:
+class LinearRegression:
 	def __init__(self, aggregate_data, prediction_set):
 		self.target = 'point_differential'
 		self.feature_columns = ['avg_pass_adjusted_yards_per_attempt_l5', 'avg_rushing_yards_per_attempt_l5', 'avg_turnovers_l5', 'avg_pass_adjusted_yards_per_attempt_allowed_l5', 'avg_rushing_yards_per_attempt_allowedl5', 'avg_turnovers_forced_l5', 'avg_point_differential_l5', 'days_rest', 'elo_rating']
 		X_train = self.__prepare_features(aggregate_data)
 		self.prediction_features = self.__prepare_features(prediction_set)
-		self.xgb_regressor = self.__train_model(X_train)
+		self.lr_regressor = self.__train_regressor(X_train)
 	
 	def __prepare_features(self, aggregate_data):		
 		feature_columns = self.__get_team_specific_feature_columns()
@@ -27,7 +28,7 @@ class XGBoost:
 			team_specific_feature_columns.append("team_b_" + col)
 		return team_specific_feature_columns
 		
-	def __train_model(self, features):
+	def __train_regressor(self, features):
 		# Prep data
 		X = features.drop(['team_a_point_differential'], axis=1)
 		y = features['team_a_point_differential']
@@ -35,17 +36,12 @@ class XGBoost:
 		# Split
 		X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 		
-		# Train XGBoost (no scaling needed!)
-		xgb = XGBRegressor(
-			n_estimators=100,
-			max_depth=5,
-			learning_rate=0.1,
-			random_state=42
-		)
-		xgb.fit(X_train, y_train)
+		# Train LogistRegressor
+		lr = LinearRegressor()
+		lr.fit(X_train, y_train)
 		
 		# Evaluate
-		predictions = xgb.predict(X_test)
+		predictions = lr.predict(X_test)
 		mae = mean_absolute_error(y_test, predictions)
 		rmse = np.sqrt(mean_squared_error(y_test, predictions))
 		
@@ -64,18 +60,19 @@ class XGBoost:
 		# Feature importance
 		importance = pd.DataFrame({
 			'feature': self.__get_team_specific_feature_columns(self.feature_columns),
-			'importance': xgb.feature_importances_
-		}).sort_values('importance', ascending=False)
-		print("\nFeature Importance:")
+			'coefficient': lr.coef_
+		}).sort_values('coefficient', key=abs, ascending=False)
+		print("\nFeature Coefficients:")
 		print(importance)
-		return xgb
+		
+		return lr
 	
 	def predict_spread(self, prediction_set):
 					
 		feature_columns = self.__get_team_specific_feature_columns(prediction_columns=True)
 	
 		X_predict = prediction_set[feature_columns].copy()
-		spread_predictions = self.xgb_regressor.predict(X_predict)
+		spread_predictions = self.lr_regressor.predict(X_predict)
 
 		# Add to dataframe for readability
 		results = prediction_set[['home_team', 'away_team']].copy()
@@ -87,3 +84,4 @@ class XGBoost:
 			axis=1
 		)
 		print(results)
+		return results

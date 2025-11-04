@@ -13,3 +13,10 @@ Add season reset to ELO rating.
 			for team in elo_dict:
 				elo_dict[team] = elo_dict[team] * 0.67 + 1500 * 0.33
 		``` 
+
+# MEDIUM
+
+Add RPI
+Add Home / Away Splits
+Add rolling aggregates for at least [3,5] days
+Add Logistic Regression

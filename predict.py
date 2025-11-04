@@ -1,6 +1,7 @@
 #from data_sources.ProFootballReference import ProFootballReference
 from prediction_models.KNearest import KNearest
 from prediction_models.XGBoost import XGBoost
+from prediction_models.LinearRegression import LinearRegression
 from DataAggregate.DataAggregate import DataAggregate
 from data_sources.OddsAPI import OddsAPI
 #import pandas as pd
@@ -22,3 +23,6 @@ k.predict_winner(da.prediction_set)
 
 xg = XGBoost(da.aggregates, da.prediction_set)
 xg.predict_spread(da.prediction_set)
+
+lr = LinearRegression(da.aggregates, da.prediction_set)
+lr.predict_spread(da.prediction_set)
