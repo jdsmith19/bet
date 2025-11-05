@@ -34,7 +34,7 @@ class LinearRegression(PredictionModel):
 				'feature': self.team_specific_feature_columns,
 				'coefficient': lr.coef_
 			}).sort_values('coefficient', ascending=False)
-			self.model_output['feature_coefficients'] = dict(zip(importance["coefficient"], importance["coefficient"]))
+			self.model_output['feature_coefficients'] = dict(zip(importance["feature"], importance["coefficient"]))
 		
 		return lr
 	
