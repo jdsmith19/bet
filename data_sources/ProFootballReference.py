@@ -261,12 +261,16 @@ class ProFootballReference:
 		query_team_performance = """
 		
 		SELECT
-			*
+			team_result.*,
+			e.season,
+			e.season_week_number
 		FROM
 			team_result
+			join event e on e.event_id = team_result.event_id
 		
 		"""
 
 		team_performance = pd.read_sql(query_team_performance, conn)
+		print(team_performance)
 		conn.close()
 		return team_performance

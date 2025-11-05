@@ -141,7 +141,7 @@ class DataAggregate:
 		
 		# Initialize ELO
 		elo_dict = { team: initial_elo for team in team_performance['team'].unique() }
-		
+		current_season = None
 		team_performance['elo_rating'] = 0.0
 		team_performance['opp_elo_rating'] = 0.0
 		
@@ -151,6 +151,14 @@ class DataAggregate:
 			
 			team_elo = elo_dict[team]
 			opp_elo = elo_dict.get(opp, initial_elo)
+			
+			if row['season'] != current_season:
+				current_season = row['season']
+				# Regress all teams toward mean
+				for team in elo_dict:
+					elo_dict[team] = elo_dict[team] * 0.67 + 1500 * 0.33
+					elo_dict[opp] = elo_dict[opp] * 0.67 + 1500 * 0.33
+
 			
 			team_performance.at[idx, 'elo_rating'] = team_elo
 			team_performance.at[idx, 'opp_elo_rating'] = opp_elo
