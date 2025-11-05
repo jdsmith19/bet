@@ -271,6 +271,5 @@ class ProFootballReference:
 		"""
 
 		team_performance = pd.read_sql(query_team_performance, conn)
-		print(team_performance)
 		conn.close()
 		return team_performance

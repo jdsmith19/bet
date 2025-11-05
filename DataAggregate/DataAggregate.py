@@ -4,7 +4,7 @@ import pandas as pd
 
 class DataAggregate:
 	def __init__(self, odds_api_key, save_api_calls=True):
-		self.team_performance_features = ['event_id', 'team', 'avg_points_scored_l5', 'avg_pass_adjusted_yards_per_attempt_l5', 'avg_rushing_yards_per_attempt_l5', 'avg_turnovers_l5', 'avg_penalty_yards_l5', 'avg_sack_yards_lost_l5', 'avg_points_allowed_l5', 'avg_pass_adjusted_yards_per_attempt_allowed_l5', 'avg_rushing_yards_per_attempt_allowedl5', 'avg_turnovers_forced_l5', 'avg_sack_yards_gained_l5', 'avg_point_differential_l5', 'days_rest', 'elo_rating', 'opp_elo_rating']
+		self.team_performance_features = ['event_id', 'team', 'avg_points_scored_l5', 'avg_pass_adjusted_yards_per_attempt_l5', 'avg_rushing_yards_per_attempt_l5', 'avg_turnovers_l5', 'avg_penalty_yards_l5', 'avg_sack_yards_lost_l5', 'avg_points_allowed_l5', 'avg_pass_adjusted_yards_per_attempt_allowed_l5', 'avg_rushing_yards_per_attempt_allowedl5', 'avg_turnovers_forced_l5', 'avg_sack_yards_gained_l5', 'avg_point_differential_l5', 'days_rest', 'elo_rating', 'rpi_rating']
 
 		pfr = ProFootballReference()
 		oa = OddsAPI(odds_api_key)
@@ -48,57 +48,59 @@ class DataAggregate:
 		team_performance = team_performance.sort_values(['team', 'date'])
 		team_performance['days_rest'] = team_performance.groupby('team')['date'].diff().dt.days.fillna(7)
 		team_performance['days_rest'] = team_performance['days_rest'].clip(upper=21)
-		
-		team_performance['avg_points_scored_l5'] = team_performance.groupby('team')['points_scored'].transform(
-			lambda x: x.rolling(5, min_periods=1).mean().shift(1)
-		)
-		
-		team_performance['avg_pass_adjusted_yards_per_attempt_l5'] = team_performance.groupby('team')['pass_adjusted_yards_per_attempt'].transform(
-			lambda x: x.rolling(5, min_periods=1).mean().shift(1)
-		)
-		
-		team_performance['avg_rushing_yards_per_attempt_l5'] = team_performance.groupby('team')['rushing_yards_per_attempt'].transform(
-			lambda x: x.rolling(5, min_periods=1).mean().shift(1)
-		)
-		
-		team_performance['avg_turnovers_l5'] = team_performance.groupby('team')['turnovers'].transform(
-			lambda x: x.rolling(5, min_periods=1).mean().shift(1)
-		)		
-		
-		team_performance['avg_penalty_yards_l5'] = team_performance.groupby('team')['penalty_yards'].transform(
-			lambda x: x.rolling(5, min_periods=1).mean().shift(1)
-		)		
-		
-		team_performance['avg_sack_yards_lost_l5'] = team_performance.groupby('team')['sack_yards_lost'].transform(
-			lambda x: x.rolling(5, min_periods=1).mean().shift(1)
-		)
-
-		team_performance['avg_points_allowed_l5'] = team_performance.groupby('team')['opp_points_scored'].transform(
-			lambda x: x.rolling(5, min_periods=1).mean().shift(1)
-		)
-
-		team_performance['avg_pass_adjusted_yards_per_attempt_allowed_l5'] = team_performance.groupby('team')['opp_pass_adjusted_yards_per_attempt'].transform(
-			lambda x: x.rolling(5, min_periods=1).mean().shift(1)
-		)
-
-		team_performance['avg_rushing_yards_per_attempt_allowedl5'] = team_performance.groupby('team')['opp_rushing_yards_per_attempt'].transform(
-			lambda x: x.rolling(5, min_periods=1).mean().shift(1)
-		)
-		
-		team_performance['avg_turnovers_forced_l5'] = team_performance.groupby('team')['opp_turnovers'].transform(
-			lambda x: x.rolling(5, min_periods=1).mean().shift(1)
-		)		
-		
-		team_performance['avg_sack_yards_gained_l5'] = team_performance.groupby('team')['opp_sack_yards_lost'].transform(
-			lambda x: x.rolling(5, min_periods=1).mean().shift(1)
-		)
-		
-		team_performance['point_differential'] = team_performance['points_scored'] - team_performance['opp_points_scored']
-		team_performance['avg_point_differential_l5'] = team_performance.groupby('team')['point_differential'].transform(
-			lambda x: x.rolling(5, min_periods=1).mean().shift(1)
-		)
-		
 		team_performance = self.__calculate_elo(team_performance, k=20, initial_elo=1500)
+		team_performance = self.__calculate_rpi(team_performance)
+		
+		for interval in [3, 5, 7]:
+			team_performance['avg_points_scored_l' + str(interval)] = team_performance.groupby('team')['points_scored'].transform(
+				lambda x: x.rolling(5, min_periods=1).mean().shift(1)
+			)
+			
+			team_performance['avg_pass_adjusted_yards_per_attempt_l' + str(interval)] = team_performance.groupby('team')['pass_adjusted_yards_per_attempt'].transform(
+				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
+			)
+			
+			team_performance['avg_rushing_yards_per_attempt_l' + str(interval)] = team_performance.groupby('team')['rushing_yards_per_attempt'].transform(
+				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
+			)
+			
+			team_performance['avg_turnovers_l' + str(interval)] = team_performance.groupby('team')['turnovers'].transform(
+				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
+			)		
+			
+			team_performance['avg_penalty_yards_l' + str(interval)] = team_performance.groupby('team')['penalty_yards'].transform(
+				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
+			)		
+			
+			team_performance['avg_sack_yards_lost_l' + str(interval)] = team_performance.groupby('team')['sack_yards_lost'].transform(
+				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
+			)
+	
+			team_performance['avg_points_allowed_l' + str(interval)] = team_performance.groupby('team')['opp_points_scored'].transform(
+				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
+			)
+	
+			team_performance['avg_pass_adjusted_yards_per_attempt_allowed_l' + str(interval)] = team_performance.groupby('team')['opp_pass_adjusted_yards_per_attempt'].transform(
+				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
+			)
+	
+			team_performance['avg_rushing_yards_per_attempt_allowedl' + str(interval)] = team_performance.groupby('team')['opp_rushing_yards_per_attempt'].transform(
+				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
+			)
+			
+			team_performance['avg_turnovers_forced_l' + str(interval)] = team_performance.groupby('team')['opp_turnovers'].transform(
+				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
+			)		
+			
+			team_performance['avg_sack_yards_gained_l' + str(interval)] = team_performance.groupby('team')['opp_sack_yards_lost'].transform(
+				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
+			)
+			
+			team_performance['point_differential'] = team_performance['points_scored'] - team_performance['opp_points_scored']
+			team_performance['avg_point_differential_l' + str(interval)] = team_performance.groupby('team')['point_differential'].transform(
+				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
+			)
+
 		return team_performance
 	
 	def __get_prediction_set(self, upcoming_games, recent_team_performance):
@@ -168,3 +170,115 @@ class DataAggregate:
 			elo_dict[team] = team_elo + k * (actual - expected)
 			
 		return team_performance
+	
+	def __calculate_rpi(self, team_performance):
+		"""
+		Calculate RPI for each team at each game.
+		RPI = (0.25 × WP) + (0.50 × OWP) + (0.25 × OOWP)
+		"""
+		df = team_performance.sort_values(['date', 'event_id']).reset_index(drop=True)
+		
+		# Initialize tracking for each team
+		team_stats = {}  # {team: {'wins': 0, 'games': 0, 'opponents': []}}
+		
+		# Store RPI values
+		rpi_values = []
+		
+		# Process each game (both rows)
+		processed_events = set()
+		
+		for idx, row in df.iterrows():
+			team = row['team']
+			opponent = row['opponent']
+			event_id = row['event_id']
+			
+			# Initialize team if first appearance
+			if team not in team_stats:
+				team_stats[team] = {'wins': 0, 'games': 0, 'opponents': []}
+			
+			# Calculate RPI BEFORE this game
+			team_rpi = self.__compute_rpi_value(team, team_stats)
+			rpi_values.append(team_rpi)
+			
+			# Update records AFTER this game (only once per event)
+			if event_id not in processed_events:
+				processed_events.add(event_id)
+				
+				# Update both teams
+				for t, opp, score, opp_score in [
+					(row['team'], row['opponent'], row['points_scored'], row['opp_points_scored']),
+					(row['opponent'], row['team'], row['opp_points_scored'], row['points_scored'])
+				]:
+					if t not in team_stats:
+						team_stats[t] = {'wins': 0, 'games': 0, 'opponents': []}
+					
+					# Update wins
+					if score > opp_score:
+						team_stats[t]['wins'] += 1
+					elif score == opp_score:
+						team_stats[t]['wins'] += 0.5
+					
+					# Update games and opponents
+					team_stats[t]['games'] += 1
+					team_stats[t]['opponents'].append(opp)
+		
+		# Add RPI column
+		df['rpi_rating'] = rpi_values
+		
+		return df
+		
+	def __compute_rpi_value(self, team, team_stats):
+		"""
+		Compute RPI for a single team at a point in time.
+		Returns 0.5 (neutral) if team has no games yet.
+		"""
+		if team not in team_stats or team_stats[team]['games'] == 0:
+			return 0.5
+		
+		stats = team_stats[team]
+		
+		# 1. WP (Winning Percentage)
+		wp = stats['wins'] / stats['games']
+		
+		# 2. OWP (Opponent Winning Percentage)
+		if len(stats['opponents']) == 0:
+			owp = 0.5
+		else:
+			opponent_wps = []
+			for opp in stats['opponents']:
+				if opp not in team_stats or team_stats[opp]['games'] == 0:
+					opponent_wps.append(0.5)
+				else:
+					opp_wp = team_stats[opp]['wins'] / team_stats[opp]['games']
+					opponent_wps.append(opp_wp)
+			owp = sum(opponent_wps) / len(opponent_wps)
+		
+		# 3. OOWP (Opponent's Opponent Winning Percentage)
+		if len(stats['opponents']) == 0:
+			oowp = 0.5
+		else:
+			oowp_values = []
+			for opp in stats['opponents']:
+				if opp not in team_stats or len(team_stats[opp]['opponents']) == 0:
+					oowp_values.append(0.5)
+				else:
+					# Get opponent's opponents' winning percentages
+					oo_wps = []
+					for oo in team_stats[opp]['opponents']:
+						if oo not in team_stats or team_stats[oo]['games'] == 0:
+							oo_wps.append(0.5)
+						else:
+							oo_wp = team_stats[oo]['wins'] / team_stats[oo]['games']
+							oo_wps.append(oo_wp)
+					
+					if oo_wps:
+						oowp_values.append(sum(oo_wps) / len(oo_wps))
+					else:
+						oowp_values.append(0.5)
+			
+			oowp = sum(oowp_values) / len(oowp_values)
+		
+		# Calculate final RPI
+		rpi = (0.25 * wp) + (0.50 * owp) + (0.25 * oowp)
+		
+		return rpi
