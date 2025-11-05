@@ -21,7 +21,7 @@ def load_history_to_db():
 	conn.execute("CREATE UNIQUE INDEX idx_team_result ON team_result(event_id, team)")
 	conn.close()
 
-load_history_to_db()
+#load_history_to_db()
 
 def load_recent_to_db():
 	data = pfr.get_historical_data([2025])

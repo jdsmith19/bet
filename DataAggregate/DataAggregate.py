@@ -16,11 +16,11 @@ class DataAggregate:
 			self.upcoming_games = pd.read_csv('cache/upcoming_games.csv')
 		else:
 			self.upcoming_games = oa.get_upcoming_for_pfr_prediction()
+			self.upcoming_games.to_csv('cache/upcoming_games.csv', index=False)
 		self.prediction_set = self.__get_prediction_set(self.upcoming_games, self.__get_rolling_aggregates(self.team_performance).groupby('team').tail(1))
 	
 	def __create_aggregates(self, game_data, team_performance):
 		team_performance_with_rolling_aggregates = self.__get_rolling_aggregates(team_performance)
-		print(team_performance_with_rolling_aggregates.info())
 		game_data = game_data.merge(
 			team_performance_with_rolling_aggregates[self.team_performance_features],
 			left_on = ['event_id', 'team_a'],
@@ -99,11 +99,9 @@ class DataAggregate:
 		)
 		
 		team_performance = self.__calculate_elo(team_performance, k=20, initial_elo=1500)
-		print(team_performance)
 		return team_performance
 	
 	def __get_prediction_set(self, upcoming_games, recent_team_performance):
-		print(recent_team_performance)
 		upcoming_games = upcoming_games.merge(
 			recent_team_performance[self.team_performance_features],
 			left_on = ['home_team'],
