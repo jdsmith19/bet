@@ -23,7 +23,7 @@ def train_and_evaluate_model(model_name: str, features: list[str]) -> dict:
 			'train_time_seconds': 
 		}
 	"""
-	
+	print(features)
 	MODEL_CONFIG = {
 		'XGBoost': { 
 			'target': 'point_differential',
@@ -55,8 +55,8 @@ def train_and_evaluate_model(model_name: str, features: list[str]) -> dict:
 	
 	VALID_FEATURES = [
 		'days_rest',
-		'rpi',
-		'elo'
+		'rpi_rating',
+		'elo_rating'
 	]
 	for feature in ['points_scored', 'pass_adjusted_yards_per_attempt', 'rushing_yards_per_attempt', 'turnovers', 'penalty_yards', 'sack_yards_lost', 'points_allowed', 'pass_adjusted_yards_per_attempt_allowed', 'rushing_yards_per_attempt_allowed', 'turnovers_forced', 'sack_yards_gained', 'point_differential']:
 		for interval in [3, 5, 7]:

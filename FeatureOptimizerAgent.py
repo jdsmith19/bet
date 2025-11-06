@@ -90,16 +90,18 @@ class FeatureOptimizerAgent:
 		- KNearest (classification: win)
 		
 		AVAILABLE FEATURES (39 total):
-		- Ratings: elo, rpi, days_rest
+		- Ratings: elo, rpi, days_rest (IMPORTANT: DO NOT PRE-PEND RATINGS FEATURES WITH team_a or team_b)
 		You have multiple window lengths (L3, L5, L7) for the following rolling statistics:
 		- Offensive: avg_points_scored, avg_pass_adjusted_yards_per_attempt, avg_rushing_yards_per_attempt, avg_turnovers, avg_penalty_yards, avg_sack_yards_lost
 		- Defensive: avg_points_allowed, avg_pass_adjusted_yards_per_attempt_allowed, avg_rushing_yards_per_attempt_allowed, avg_turnovers_forced, avg_sack_yards_gained
 		- Overall: avg_point_differential
 		
+		IMPORTANT: DO NOT TRY TO PASS THE TARGET COLUMNS (e.g. "team_a_predicted_spread" or "team_b_win"). THIS WILL NOT WORK.
+		
 		Each stat (except ratings/days_rest) comes in L3, L5, and L7 variants.
 		
 		FEATURE REDUNDANCY:
-		- L3, L5, L7 windows are highly correlated - likely only need ONE window length
+		- L3, L5, L7 windows are highly correlated - likely only need ONE window length, but feel free to experiment to see if using multiple can find trends
 		- ELO and RPI are correlated - may be redundant for some models
 		- Points scored/allowed correlate with point differential
 		
@@ -146,19 +148,7 @@ class FeatureOptimizerAgent:
 		2. What does feature_importance tell you?
 		3. What should you try next?
 		
-		Be systematic, learn from each experiment, and find the optimal features!
-		
-		IMPORTANT - EXACT FEATURE NAMES:
-		Features must be spelled EXACTLY as shown. Common mistakes:
-		❌ avg_rushing_yards_per_attempt_allowedl5  (missing underscore before l5)
-		✅ avg_rushing_yards_per_attempt_allowed_l5 (correct)
-		
-		EXAMPLE VALID FEATURE LISTS:
-		- ['elo', 'rpi', 'days_rest']
-		- ['elo', 'avg_point_differential_l5', 'avg_turnovers_forced_l5']
-		- ['elo', 'avg_points_scored_l5', 'avg_pass_adjusted_yards_per_attempt_l5', 'avg_rushing_yards_per_attempt_allowed_l5']
-		
-		Note: All window-based features end with '_l3', '_l5', or '_l7' (with underscore)."""
+		Be systematic, learn from each experiment, and find the optimal features!"""
 			
 	def __get_initial_prompt(self):
 		"""Initial user message to start the agent"""
@@ -213,7 +203,7 @@ class FeatureOptimizerAgent:
 							'type': 'array',
 							'items': {
 								'type': 'string',
-								'enum': ['days_rest', 'rpi', 'elo', 'avg_points_scored_l3', 'avg_points_scored_l5', 'avg_points_scored_l7', 'avg_pass_adjusted_yards_per_attempt_l3', 'avg_pass_adjusted_yards_per_attempt_l5', 'avg_pass_adjusted_yards_per_attempt_l7', 'avg_rushing_yards_per_attempt_l3', 'avg_rushing_yards_per_attempt_l5', 'avg_rushing_yards_per_attempt_l7', 'avg_turnovers_l3', 'avg_turnovers_l5', 'avg_turnovers_l7', 'avg_penalty_yards_l3', 'avg_penalty_yards_l5', 'avg_penalty_yards_l7', 'avg_sack_yards_lost_l3', 'avg_sack_yards_lost_l5', 'avg_sack_yards_lost_l7', 'avg_points_allowed_l3', 'avg_points_allowed_l5', 'avg_points_allowed_l7', 'avg_pass_adjusted_yards_per_attempt_allowed_l3', 'avg_pass_adjusted_yards_per_attempt_allowed_l5', 'avg_pass_adjusted_yards_per_attempt_allowed_l7', 'avg_rushing_yards_per_attempt_allowed_l3', 'avg_rushing_yards_per_attempt_allowed_l5', 'avg_rushing_yards_per_attempt_allowed_l7', 'avg_turnovers_forced_l3', 'avg_turnovers_forced_l5', 'avg_turnovers_forced_l7', 'avg_sack_yards_gained_l3', 'avg_sack_yards_gained_l5', 'avg_sack_yards_gained_l7', 'avg_point_differential_l3', 'avg_point_differential_l5', 'avg_point_differential_l7']
+								'enum': ['days_rest', 'rpi_rating', 'elo_rating', 'avg_points_scored_l3', 'avg_points_scored_l5', 'avg_points_scored_l7', 'avg_pass_adjusted_yards_per_attempt_l3', 'avg_pass_adjusted_yards_per_attempt_l5', 'avg_pass_adjusted_yards_per_attempt_l7', 'avg_rushing_yards_per_attempt_l3', 'avg_rushing_yards_per_attempt_l5', 'avg_rushing_yards_per_attempt_l7', 'avg_turnovers_l3', 'avg_turnovers_l5', 'avg_turnovers_l7', 'avg_penalty_yards_l3', 'avg_penalty_yards_l5', 'avg_penalty_yards_l7', 'avg_sack_yards_lost_l3', 'avg_sack_yards_lost_l5', 'avg_sack_yards_lost_l7', 'avg_points_allowed_l3', 'avg_points_allowed_l5', 'avg_points_allowed_l7', 'avg_pass_adjusted_yards_per_attempt_allowed_l3', 'avg_pass_adjusted_yards_per_attempt_allowed_l5', 'avg_pass_adjusted_yards_per_attempt_allowed_l7', 'avg_rushing_yards_per_attempt_allowed_l3', 'avg_rushing_yards_per_attempt_allowed_l5', 'avg_rushing_yards_per_attempt_allowed_l7', 'avg_turnovers_forced_l3', 'avg_turnovers_forced_l5', 'avg_turnovers_forced_l7', 'avg_sack_yards_gained_l3', 'avg_sack_yards_gained_l5', 'avg_sack_yards_gained_l7', 'avg_point_differential_l3', 'avg_point_differential_l5', 'avg_point_differential_l7']
 							},
 							'description': 'List of feature names to include.'
 						}
