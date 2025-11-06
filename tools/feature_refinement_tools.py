@@ -1,5 +1,6 @@
 from model_feature_evaluation import evaluate_model_with_features
 import time
+import traceback
 
 def train_and_evaluate_model(model_name: str, features: list[str]) -> dict:
 	"""
@@ -69,15 +70,13 @@ def train_and_evaluate_model(model_name: str, features: list[str]) -> dict:
 	start_time = time.time()
 	
 	try:
-		model_output = evaluate_model_with_features(model_name, features)
-	
-		train_time = time.time() - start_time
-		
-		result['train_time_in_seconds'] = train_time
-		
-		return result
+		model_output = evaluate_model_with_features(model_name, features)		
+		model_output['train_time_in_seconds'] = time.time() - start_time
+		model_output['features_used'] = features
+		return model_output
 	
 	except Exception as e:
+		traceback.print_exc()
 		return {
 			'model_name': model_name,
 			'target': target,

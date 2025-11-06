@@ -98,20 +98,8 @@ class FeatureOptimizerAgent:
 		
 		IMPORTANT: DO NOT TRY TO PASS THE TARGET COLUMNS (e.g. "team_a_predicted_spread" or "team_b_win"). THIS WILL NOT WORK.
 		
-		Each stat (except ratings/days_rest) comes in L3, L5, and L7 variants.
-		
-		FEATURE REDUNDANCY:
-		- L3, L5, L7 windows are highly correlated - likely only need ONE window length, but feel free to experiment to see if using multiple can find trends
-		- ELO and RPI are correlated - may be redundant for some models
-		- Points scored/allowed correlate with point differential
-		
-		KNOWN BEHAVIORS FROM PAST EXPERIMENTS:
-		- ELO is highly predictive across all models
-		- Point differential stats are strong predictors
-		- RPI helps linear models but hurts tree models when paired with ELO
-		- Tree models (XGBoost, RandomForest) handle feature redundancy better
-		- Linear models need careful feature selection to avoid multicollinearity
-		
+		Each stat (except ratings/days_rest/elo/rpi_rating) comes in L3, L5, and L7 variants.
+						
 		YOUR STRATEGY:
 		Phase 1 (first 50-75 experiments): Explore broadly
 		- Test different window lengths (L3 vs L5 vs L7)
@@ -251,7 +239,7 @@ class FeatureOptimizerAgent:
 		
 		# Get primary metric
 		if result.get('target') == 'point_differential':
-			metric = result.get('mae')
+			metric = result.get('mean_absolute_error')
 			is_better = lambda new, old: new < old  # Lower is better
 		else:
 			metric = result.get('test_accuracy')
@@ -264,21 +252,32 @@ class FeatureOptimizerAgent:
 		if model_name not in self.best_results:
 			self.best_results[model_name] = result
 		else:
-			old_metric = self._get_primary_metric(self.best_results[model_name])
-			if is_better(metric, old_metric):
+			# FOR DEBUGGING THE NASTY BUG I HAD BEFORE
+			old_result = self.best_results[model_name]
+			print(f"\n🔍 DEBUG: Comparing to previous best:")
+			print(f"   Previous best keys: {list(old_result.keys())}")
+			print(f"   Previous best: {old_result}")
+			 
+			old_metric = self.__get_primary_metric(old_result)
+			print(f"   old_metric returned: {old_metric}")
+			print(f"   current metric: {metric}")
+			if old_metric is None:
+				print("   ⚠️  old_metric is None! Replacing.")
+				self.best_results[model_name] = result
+			elif is_better(metric, old_metric):
 				self.best_results[model_name] = result
 				print(f"🎉 NEW BEST for {model_name}!")
 	
 	def __get_primary_metric(self, result):
 		"""Extract primary metric from result"""
 		if result.get('target') == 'point_differential':
-			return result.get('mae')
+			return result.get('mean_absolute_error')
 		return result.get('test_accuracy')
 	
 	def __format_metric(self, result):
 		"""Format metric for display"""
 		if result.get('target') == 'point_differential':
-			return f"MAE={result.get('mae'):.2f}, RMSE={result.get('rmse'):.2f}"
+			return f"MAE={result.get('mean_absolute_error'):.2f}, RMSE={result.get('rmse'):.2f}"
 		return f"Accuracy={result.get('test_accuracy'):.1%}"
 	
 	def __print_result_summary(self, result):
@@ -290,8 +289,8 @@ class FeatureOptimizerAgent:
 		if 'error' in result:
 			print(f"   ❌ Error: {result['error']}")
 		elif result.get('target') == 'point_differential':
-			print(f"   MAE: {result.get('mae'):.3f}")
-			print(f"   RMSE: {result.get('rmse'):.3f}")
+			print(f"   MAE: {result.get('mean_absolute_error'):.3f}")
+			print(f"   RMSE: {result.get('root_mean_squared_error'):.3f}")
 			
 			# Show top 3 features
 			if result.get('feature_importance'):
@@ -301,7 +300,7 @@ class FeatureOptimizerAgent:
 			print(f"   Test Accuracy: {result.get('test_accuracy'):.1%}")
 			print(f"   Train Accuracy: {result.get('train_accuracy'):.1%}")
 		
-		print(f"   Time: {result.get('train_time_seconds')}s")
+		print(f"   Time: {result.get('train_time_in_seconds')}s")
 	
 	def __agent_wants_to_stop(self, content):
 		"""Check if agent indicates it's done"""
