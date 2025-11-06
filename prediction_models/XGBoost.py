@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from helpers.Lookup import Lookup
 
-class XGBoostSlim(PredictionModel):
+class XGBoost(PredictionModel):
 	def __init__(self, data_aggregate, target, feature_columns):
 		super().__init__(data_aggregate, target, feature_columns)
 		self.model_output = { 'model_name': 'XGBoost', 'target': target }

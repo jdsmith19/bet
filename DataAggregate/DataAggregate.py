@@ -84,7 +84,7 @@ class DataAggregate:
 				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
 			)
 	
-			team_performance['avg_rushing_yards_per_attempt_allowedl' + str(interval)] = team_performance.groupby('team')['opp_rushing_yards_per_attempt'].transform(
+			team_performance['avg_rushing_yards_per_attempt_allowed_l' + str(interval)] = team_performance.groupby('team')['opp_rushing_yards_per_attempt'].transform(
 				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
 			)
 			

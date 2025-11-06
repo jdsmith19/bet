@@ -1,5 +1,5 @@
 from DataAggregate.DataAggregate import DataAggregate
-from prediction_models.XGBoost import XGBoostSlim
+from prediction_models.XGBoost import XGBoost
 from prediction_models.LinearRegression import LinearRegression
 from prediction_models.RandomForest import RandomForest
 from prediction_models.LogisticRegression import LogisticRegression
