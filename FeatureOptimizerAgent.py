@@ -102,6 +102,7 @@ class FeatureOptimizerAgent:
 							'role': 'user',
 							'content': intervention_message
 						})
+						self.empty_response_count = 0
 				#Check if agent is done
 				if self.__agent_wants_to_stop(response['message']['content']):
 					print("\n✅ Agent has completed optimization!")
