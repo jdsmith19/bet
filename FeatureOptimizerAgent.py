@@ -67,7 +67,7 @@ class FeatureOptimizerAgent:
 				tools = [self.__get_tool_definition()]
 			)
 			current_message = response['message']['content']
-			print(f"Agent: {current_message}")
+			print(f"Current Message: {current_message}")
 			has_message = False
 			
 			# Add assistant's message to history
