@@ -1,3 +1,5 @@
+import pandas as pd
+
 class PredictionModel:
 	def __init__(self, data_aggregate, target, feature_columns):
 		self.target = target
@@ -16,7 +18,6 @@ class PredictionModel:
 	
 	def __get_team_specific_feature_columns(self, prediction_columns=False):
 		team_specific_feature_columns = []
-		#if(not prediction_columns):
 		team_specific_feature_columns.append("team_a_" + self.target)
 		for col in self.feature_columns:
 			team_specific_feature_columns.append("team_a_" + col)

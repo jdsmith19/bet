@@ -4,7 +4,21 @@ import pandas as pd
 
 class DataAggregate:
 	def __init__(self, odds_api_key, save_api_calls=True):
-		self.team_performance_features = ['event_id', 'team', 'days_rest', 'rpi_rating', 'elo_rating', 'avg_points_scored_l3', 'avg_points_scored_l5', 'avg_points_scored_l7', 'avg_pass_adjusted_yards_per_attempt_l3', 'avg_pass_adjusted_yards_per_attempt_l5', 'avg_pass_adjusted_yards_per_attempt_l7', 'avg_rushing_yards_per_attempt_l3', 'avg_rushing_yards_per_attempt_l5', 'avg_rushing_yards_per_attempt_l7', 'avg_turnovers_l3', 'avg_turnovers_l5', 'avg_turnovers_l7', 'avg_penalty_yards_l3', 'avg_penalty_yards_l5', 'avg_penalty_yards_l7', 'avg_sack_yards_lost_l3', 'avg_sack_yards_lost_l5', 'avg_sack_yards_lost_l7', 'avg_points_allowed_l3', 'avg_points_allowed_l5', 'avg_points_allowed_l7', 'avg_pass_adjusted_yards_per_attempt_allowed_l3', 'avg_pass_adjusted_yards_per_attempt_allowed_l5', 'avg_pass_adjusted_yards_per_attempt_allowed_l7', 'avg_rushing_yards_per_attempt_allowed_l3', 'avg_rushing_yards_per_attempt_allowed_l5', 'avg_rushing_yards_per_attempt_allowed_l7', 'avg_turnovers_forced_l3', 'avg_turnovers_forced_l5', 'avg_turnovers_forced_l7', 'avg_sack_yards_gained_l3', 'avg_sack_yards_gained_l5', 'avg_sack_yards_gained_l7', 'avg_point_differential_l3', 'avg_point_differential_l5', 'avg_point_differential_l7']
+		self.team_performance_features = ['event_id', 'team', 'days_rest', 'rpi_rating', 'elo_rating']
+		self.STATS_CONFIG = [
+			('avg_points_scored', 'points_scored'),
+			('avg_pass_adjusted_yards_per_attempt', 'pass_adjusted_yards_per_attempt'),
+			('avg_rushing_yards_per_attempt', 'rushing_yards_per_attempt'),
+			('avg_turnovers', 'turnovers'),
+			('avg_penalty_yards', 'penalty_yards'),
+			('avg_sack_yards_lost', 'sack_yards_lost'),
+			('avg_points_allowed', 'opp_points_scored'),
+			('avg_pass_adjusted_yards_per_attempt_allowed', 'opp_pass_adjusted_yards_per_attempt'),
+			('avg_rushing_yards_per_attempt_allowed', 'opp_rushing_yards_per_attempt'),
+			('avg_turnovers_forced', 'opp_turnovers'),
+			('avg_sack_yards_gained', 'opp_sack_yards_lost'),
+			('avg_point_differential', 'point_differential')
+		]
 
 		pfr = ProFootballReference()
 		oa = OddsAPI(odds_api_key)
@@ -50,59 +64,49 @@ class DataAggregate:
 		team_performance['days_rest'] = team_performance['days_rest'].clip(upper=21)
 		team_performance = self.__calculate_elo(team_performance, k=20, initial_elo=1500)
 		team_performance = self.__calculate_rpi(team_performance)
+		team_performance[f'point_differential'] = team_performance['points_scored'] - team_performance['opp_points_scored']
 		
 		for interval in [3, 5, 7]:
-			team_performance['avg_points_scored_l' + str(interval)] = team_performance.groupby('team')['points_scored'].transform(
-				lambda x: x.rolling(5, min_periods=1).mean().shift(1)
-			)
+			team_performance = self.__calculate_stats(team_performance, ['team'], interval, f'l{interval}')
+				
+		for location in ['home','away']:
+			if location == 'home':
+				mask = team_performance['is_home'] == 1
+			elif location == 'away':
+				mask = team_performance['is_home'] == 0
 			
-			team_performance['avg_pass_adjusted_yards_per_attempt_l' + str(interval)] = team_performance.groupby('team')['pass_adjusted_yards_per_attempt'].transform(
-				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
-			)
+			split_performance = team_performance[mask].copy()
+			split_performance = self.__calculate_stats(split_performance, ['team'], interval, location)
 			
-			team_performance['avg_rushing_yards_per_attempt_l' + str(interval)] = team_performance.groupby('team')['rushing_yards_per_attempt'].transform(
-				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
-			)
-			
-			team_performance['avg_turnovers_l' + str(interval)] = team_performance.groupby('team')['turnovers'].transform(
-				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
-			)		
-			
-			team_performance['avg_penalty_yards_l' + str(interval)] = team_performance.groupby('team')['penalty_yards'].transform(
-				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
-			)		
-			
-			team_performance['avg_sack_yards_lost_l' + str(interval)] = team_performance.groupby('team')['sack_yards_lost'].transform(
-				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
-			)
-	
-			team_performance['avg_points_allowed_l' + str(interval)] = team_performance.groupby('team')['opp_points_scored'].transform(
-				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
-			)
-	
-			team_performance['avg_pass_adjusted_yards_per_attempt_allowed_l' + str(interval)] = team_performance.groupby('team')['opp_pass_adjusted_yards_per_attempt'].transform(
-				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
-			)
-	
-			team_performance['avg_rushing_yards_per_attempt_allowed_l' + str(interval)] = team_performance.groupby('team')['opp_rushing_yards_per_attempt'].transform(
-				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
-			)
-			
-			team_performance['avg_turnovers_forced_l' + str(interval)] = team_performance.groupby('team')['opp_turnovers'].transform(
-				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
-			)		
-			
-			team_performance['avg_sack_yards_gained_l' + str(interval)] = team_performance.groupby('team')['opp_sack_yards_lost'].transform(
-				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
-			)
-			
-			team_performance['point_differential'] = team_performance['points_scored'] - team_performance['opp_points_scored']
-			team_performance['avg_point_differential_l' + str(interval)] = team_performance.groupby('team')['point_differential'].transform(
-				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
-			)
+			split_cols = [col for col in split_performance.columns if col.endswith(f'_{location}') and col != 'is_home']
 
+			team_performance = team_performance.merge(
+				split_performance[['event_id', 'team'] + split_cols],
+				on=['event_id', 'team'],
+				how='left'
+			)
+			
+			# Forward-fill the stats for each team (so every game has both home and away stats)
+			for col in split_cols:
+				team_performance[col] = team_performance.groupby('team')[col].ffill()
+				
+				# Backfill for early games that have no prior home/away games
+				team_performance[col] = team_performance.groupby('team')[col].bfill()
+						
 		return team_performance
 	
+	def __calculate_stats(self, team_performance, group_cols, interval, suffix):
+		
+		for stat_name, source_col in self.STATS_CONFIG:
+			col_name = f"{stat_name}_{suffix}"
+			if col_name not in self.team_performance_features:
+				self.team_performance_features.append(col_name)
+			team_performance[col_name] = team_performance.groupby(group_cols)[source_col].transform(
+				lambda x: x.rolling(interval, min_periods=1).mean().shift(1)
+			)
+		
+		return team_performance
+		
 	def __get_prediction_set(self, upcoming_games, recent_team_performance):
 		upcoming_games = upcoming_games.merge(
 			recent_team_performance[self.team_performance_features],
