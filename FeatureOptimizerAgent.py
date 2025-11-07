@@ -66,6 +66,7 @@ class FeatureOptimizerAgent:
 				messages = messages,
 				tools = [self.__get_tool_definition()]
 			)
+			has_message = False
 			# Add assistant's message to history
 			if (not response['message']['content'] or len(response['message']['content']) < 10) and not response['message'].get('tool_calls'):
 				intervention_message = f"You appear to be stuck. You gave me an empty response. Immediately plan and execute your next experiment."
@@ -76,6 +77,7 @@ class FeatureOptimizerAgent:
 				})
 			else:
 				messages.append(response['message'])
+				has_message = True
 			
 			# Check if agent wants to use tool
 			if response['message'].get('tool_calls'):
@@ -98,7 +100,7 @@ class FeatureOptimizerAgent:
 					
 					# Print summary
 					self.__print_result_summary(result)
-			elif response['message']['content'] or len(response['message']['content']) > 10:
+			elif has_message:
 				# Agent is thinking / explaining, not calling a tool
 				print(f"\n{'='*80}")
 				print(f"Agent is thinking...")
