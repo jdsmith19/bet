@@ -218,7 +218,7 @@ class FeatureOptimizerAgent:
 			
 			CRITICAL TOOL USAGE:
 			- Call tools using the native function calling mechanism provided by the chat API
-			- DO NOT write JSON in your text response like: {"name": "train_and_evaluate_model", ...}
+			- DO NOT write JSON in your text response like: {{"name": "train_and_evaluate_model", ...}}
 			- DO NOT use code blocks: ```json ... ```
 			- The tool calling happens automatically when you use the proper mechanism
 			- Your text response should explain your reasoning, NOT contain the tool call JSON
