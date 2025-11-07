@@ -41,7 +41,7 @@ class FeatureOptimizerAgent:
 				print(f"   This may cause slowness or model confusion!")
 			
 			print(f"{'='*80}\n")
-			MAX_MESSAGES = 80
+			MAX_MESSAGES = 60
 			if len(messages) > MAX_MESSAGES:
 				print(f"Trimming messages...")
 				best_summary = f"""BEST RESULTS SO FAR (Experiment {self.experiment_count}):
