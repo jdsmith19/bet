@@ -5,8 +5,13 @@ from prediction_models.RandomForest import RandomForest
 from prediction_models.LogisticRegression import LogisticRegression
 from prediction_models.KNearest import KNearest
 import config
+import time
 
+start_time = time.time()
 da = DataAggregate(config.odds_api_key)
+end_time = time.time()
+print(f"Loaded DataAggregates in { end_time - start_time }s.")
+
 
 def evaluate_model_with_features(model_name, feature_list):
 	
