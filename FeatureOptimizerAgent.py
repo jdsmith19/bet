@@ -115,7 +115,7 @@ class FeatureOptimizerAgent:
 					break
 			
 			# Periodic check-in
-			if self.experiment_count % 10 == 0 and self.experiment_count > 0:
+			if self.experiment_count % 25 == 0 and self.experiment_count > 0:
 				checkpoint_prompt = self.__get_checkpoint_prompt()
 				print(f"\n{'='*80}")
 				print(f"CHECKPOINT")
