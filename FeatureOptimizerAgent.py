@@ -77,6 +77,7 @@ class FeatureOptimizerAgent:
 				})
 			else:
 				messages.append(response['message'])
+				print(response['message']['content'])
 				has_message = True
 			
 			# Check if agent wants to use tool
