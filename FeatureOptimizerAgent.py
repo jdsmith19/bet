@@ -46,11 +46,13 @@ class FeatureOptimizerAgent:
 			MAX_MESSAGES = 60
 			if len(messages) > MAX_MESSAGES:
 				print(f"Trimming messages...")
-				best_summary = f"""BEST RESULTS SO FAR (Experiment {self.experiment_count}:
+				best_summary = f"""You appear to be stuck. The last two responses have been empty.
+				
+				BEST RESULTS SO FAR (Experiment {self.experiment_count}:
 				
 				{ self.__format_all_best_results() }
 				
-				Continue optimization using these insights."""
+				Continue optimization using your available insights."""
 				
 				print(f"Reminding the agent of the { best_summary }")
 
