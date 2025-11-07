@@ -214,7 +214,18 @@ class FeatureOptimizerAgent:
 			- After analyzing results, immediately call the tool for your next experiment
 			
 			NEVER STOP EARLY. Use all available experiments to ensure you've found the true optimum.
-			Only say "optimization complete" when experiment_count >= {self.max_experiments} or you are absolutely confident you will not get any better. You are currently on experiment number {self.experiment_count}"""
+			Only say "optimization complete" when experiment_count >= {self.max_experiments} or you are absolutely confident you will not get any better. You are currently on experiment number {self.experiment_count}.
+			
+			CRITICAL TOOL USAGE:
+			- Call tools using the native function calling mechanism provided by the chat API
+			- DO NOT write JSON in your text response like: {"name": "train_and_evaluate_model", ...}
+			- DO NOT use code blocks: ```json ... ```
+			- The tool calling happens automatically when you use the proper mechanism
+			- Your text response should explain your reasoning, NOT contain the tool call JSON
+			
+			CORRECT: Use the tool calling feature
+			WRONG: Write {"name": "train_and_evaluate_model", "arguments": {...}} in your response
+			WRONG: Write ```json ... ``` in your response"""
 			
 	def __get_initial_prompt(self):
 		"""Initial user message to start the agent"""
