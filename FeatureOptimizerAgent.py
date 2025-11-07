@@ -10,6 +10,7 @@ class FeatureOptimizerAgent:
 		self.experiment_count = 0
 		self.experiment_history = []
 		self.best_results = {}
+		self.empty_response_count = 0
 	
 	def run(self):
 		"""Main agent loop"""
@@ -92,14 +93,27 @@ class FeatureOptimizerAgent:
 				print(f"Agent is thinking...")
 				print(f"\n{'='*80}\n")
 				print(f"Agent: { response['message']['content'] }")
-				
+				if not response['message']['content'] or len(response['message']['content']) < 10:
+					printf("Agent responded with nothing. Incrementing empty_response_count in case we need to prompt it to break its loop.")
+					self.empty_response_count += 1
+					if self.empty_response_count >= 2:
+						intervention_message = f"You appear to be stuck in a loop. You've responded with nothing on the last two iterations. Immediately plan and execute your next experiment."
+						messages.append({
+							'role': 'user',
+							'content': intervention_message
+						})
 				#Check if agent is done
 				if self.__agent_wants_to_stop(response['message']['content']):
 					print("\n✅ Agent has completed optimization!")
 					break
 			
 			# Periodic check-in
-			if self.experiment_count % 25 == 0 and self.experiment_count > 0:
+			if self.experiment_count % 10 == 0 and self.experiment_count > 0:
+				checkpoint_prompt = self.__get_checkpoint_prompt()
+				print(f"\n{'='*80}")
+				print(f"CHECKPOINT")
+				print(f"\n{'='*80}\n")
+				print(checkpoint_prompt)
 				messages.append({
 					'role': 'user',
 					'content': self.__get_checkpoint_prompt()
