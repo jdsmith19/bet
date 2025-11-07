@@ -140,7 +140,7 @@ class FeatureOptimizerAgent:
 		
 			YOUR GOAL:
 			Find the best feature combinations for each model type through systematic experimentation.
-			You have {max_experiments} experiments available - USE THEM ALL to find the absolute best combinations.
+			You have {self.max_experiments} experiments available - USE THEM ALL to find the absolute best combinations.
 			
 			AVAILABLE MODELS:
 			- XGBoost (regression: point_differential)
