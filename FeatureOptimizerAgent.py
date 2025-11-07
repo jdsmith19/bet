@@ -98,16 +98,16 @@ class FeatureOptimizerAgent:
 				print(f"\n{'='*80}\n")
 				print(f"Agent: { response['message']['content'] }")
 				if not response['message']['content'] or len(response['message']['content']) < 10:
-					print(f"Agent responded with nothing. Incrementing empty_response_count in case we need to prompt it to break its loop.")
+					#print(f"Agent responded with nothing. Incrementing empty_response_count in case we need to prompt it to break its loop.")
 					self.empty_response_count += 1
-					if self.empty_response_count >= self.max_consecutive_empty_responses:
-						intervention_message = f"You appear to be stuck in a loop. You've responded with nothing on the last { self.max_consecutive_empty_responses } iterations. Immediately plan and execute your next experiment."
-						print(intervention_message)
-						messages.append({
-							'role': 'user',
-							'content': intervention_message
-						})
-						self.empty_response_count = 0
+					#if self.empty_response_count >= self.max_consecutive_empty_responses:
+					intervention_message = f"You appear to be stuck. You gave me an empty response. Immediately plan and execute your next experiment."
+					print(intervention_message)
+					messages.append({
+						'role': 'user',
+						'content': intervention_message
+					})
+					self.empty_response_count = 0
 				#Check if agent is done
 				if self.__agent_wants_to_stop(response['message']['content']):
 					print("\n✅ Agent has completed optimization!")
