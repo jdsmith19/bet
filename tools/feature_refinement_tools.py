@@ -62,6 +62,8 @@ def train_and_evaluate_model(model_name: str, features: list[str]) -> dict:
 	for feature in ['points_scored', 'pass_adjusted_yards_per_attempt', 'rushing_yards_per_attempt', 'turnovers', 'penalty_yards', 'sack_yards_lost', 'points_allowed', 'pass_adjusted_yards_per_attempt_allowed', 'rushing_yards_per_attempt_allowed', 'turnovers_forced', 'sack_yards_gained', 'point_differential']:
 		for interval in [3, 5, 7]:
 			VALID_FEATURES.append("avg_" + feature + "_l" + str(interval))
+		for location in ['home', 'away']:
+			VALID_FEATURES.append("avg_" + feature + "_" + location)
 		
 	invalid_features = [f for f in features if f not in VALID_FEATURES]
 	if invalid_features:

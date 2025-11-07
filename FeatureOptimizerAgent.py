@@ -123,10 +123,11 @@ class FeatureOptimizerAgent:
 		
 		AVAILABLE FEATURES (39 total):
 		- Ratings: elo, rpi, days_rest (IMPORTANT: DO NOT PRE-PEND RATINGS FEATURES WITH team_a or team_b)
-		You have multiple window lengths (L3, L5, L7) for the following rolling statistics:
+		You have multiple window lengths (L3, L5, L7) OR home and away splits (home, away) for the following rolling statistics:
 		- Offensive: avg_points_scored, avg_pass_adjusted_yards_per_attempt, avg_rushing_yards_per_attempt, avg_turnovers, avg_penalty_yards, avg_sack_yards_lost
 		- Defensive: avg_points_allowed, avg_pass_adjusted_yards_per_attempt_allowed, avg_rushing_yards_per_attempt_allowed, avg_turnovers_forced, avg_sack_yards_gained
 		- Overall: avg_point_differential
+		- Usage: These can be expressed as avg_points_scored_l3 or avg_points_scored_home
 								
 		YOUR STRATEGY:
 		Plan 5 experiments at a time and execute them sequentially by calling the tool. After executing those 5 experiments, analyze the results and plan the next 5 experiments.
