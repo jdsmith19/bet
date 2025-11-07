@@ -224,7 +224,7 @@ class FeatureOptimizerAgent:
 			- Your text response should explain your reasoning, NOT contain the tool call JSON
 			
 			CORRECT: Use the tool calling feature
-			WRONG: Write {"name": "train_and_evaluate_model", "arguments": {...}} in your response
+			WRONG: Write {{"name": "train_and_evaluate_model", "arguments": {{...}}}} in your response
 			WRONG: Write ```json ... ``` in your response"""
 			
 	def __get_initial_prompt(self):
