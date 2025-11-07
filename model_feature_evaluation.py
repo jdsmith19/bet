@@ -6,8 +6,9 @@ from prediction_models.LogisticRegression import LogisticRegression
 from prediction_models.KNearest import KNearest
 import config
 
+da = DataAggregate(config.odds_api_key)
+
 def evaluate_model_with_features(model_name, feature_list):
-	da = DataAggregate(config.odds_api_key)
 	
 	if(model_name == 'XGBoost'):
 		model = XGBoost(da, 'point_differential', feature_list)
