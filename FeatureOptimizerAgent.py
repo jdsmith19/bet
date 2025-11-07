@@ -66,6 +66,7 @@ class FeatureOptimizerAgent:
 				messages = messages,
 				tools = [self.__get_tool_definition()]
 			)
+						
 			current_message = response['message']['content']
 			print(f"Current Message: {current_message}")
 			has_message = False
@@ -88,7 +89,11 @@ class FeatureOptimizerAgent:
 				print(f"Experiment {self.experiment_count + 1} / {self.max_experiments}")
 				print(f"{'='*80}\n")
 				# Process tool calls
-				print(f"Agent: { response['message']['content']}\n")
+				if self.model == 'qwen3:32B':
+					this_message = response.message['thinking']
+				else:
+					this_message = response['message']['content']
+				print(f"Agent: { this_message }\n")
 				for tool_call in response['message']['tool_calls']:
 					result = self.__execute_tool(tool_call)
 					
