@@ -20,6 +20,8 @@ class PredictionModel:
 		team_specific_feature_columns = []
 		team_specific_feature_columns.append("team_a_" + self.target)
 		for col in self.feature_columns:
-			team_specific_feature_columns.append("team_a_" + col)
-			team_specific_feature_columns.append("team_b_" + col)
+			if "_is_away" not in col:
+				team_specific_feature_columns.append("team_a_" + col)
+			if "_is_home" not in col:
+				team_specific_feature_columns.append("team_b_" + col)
 		return team_specific_feature_columns
