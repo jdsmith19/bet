@@ -24,7 +24,7 @@ def train_and_evaluate_model(model_name: str, features: list[str]) -> dict:
 			'train_time_seconds': 
 		}
 	"""
-	print(features)
+	#print(features)
 	MODEL_CONFIG = {
 		'XGBoost': { 
 			'target': 'point_differential',

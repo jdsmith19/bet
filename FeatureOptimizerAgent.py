@@ -24,10 +24,35 @@ class FeatureOptimizerAgent:
 		]
 		
 		# Agent Loop
-		while self.experiment_count < self.max_experiments:
+		while self.experiment_count < self.max_experiments:			
 			print(f"\n{'='*80}")
-			print(f"Experiment {self.experiment_count + 1}/{self.max_experiments}")
+			print(f"📊 CONTEXT INSPECTION - Experiment {self.experiment_count}")
+			print(f"{'='*80}")
+			
+			print(f"Total messages: {len(messages)}")
+
+			# Estimate token count (rough)
+			total_chars = sum(len(str(msg)) for msg in messages)
+			estimated_tokens = total_chars // 4  # Rough estimate: 1 token ≈ 4 chars
+			print(f"Estimated tokens: {estimated_tokens:,}")
+			
+			if estimated_tokens > 100000:
+				print(f"⚠️  WARNING: Very large context ({estimated_tokens:,} tokens)")
+				print(f"   This may cause slowness or model confusion!")
+			
 			print(f"{'='*80}\n")
+			MAX_MESSAGES = 50
+			if len(messages) > MAX_MESSAGES:
+				best_summary = f"""BEST RESULTS SO FAR (Experiment {self.experiment_count}):
+					
+				{self._format_all_best_results()}
+				
+				Continue optimization using these insights."""
+				messages = [
+					messages[0],  # System prompt
+					{'role': 'user', 'content': best_summary},
+					*messages[-(MAX_MESSAGES-2):]  # Recent experiments
+				]
 			
 			# Get agent's response
 			response = ollama.chat(
@@ -35,14 +60,17 @@ class FeatureOptimizerAgent:
 				messages = messages,
 				tools = [self.__get_tool_definition()]
 			)
-			
 			# Add assistant's message to history
 			
 			messages.append(response['message'])
 			
 			# Check if agent wants to use tool
 			if response['message'].get('tool_calls'):
+				print(f"\n{'='*80}")
+				print(f"Experiment {self.experiment_count + 1} / {self.max_experiments}")
+				print(f"{'='*80}\n")
 				# Process tool calls
+				print(f"Agent: { response['message']['content']}\n")
 				for tool_call in response['message']['tool_calls']:
 					result = self.__execute_tool(tool_call)
 					
@@ -59,7 +87,10 @@ class FeatureOptimizerAgent:
 					self.__print_result_summary(result)
 			else:
 				# Agent is thinking / explaining, not calling a tool
-				print(f"Agent: { response['message']['content'] }\n")
+				print(f"\n{'='*80}")
+				print(f"Agent is thinking...")
+				print(f"\n{'='*80}\n")
+				print(f"Agent: { response['message']['content'] }")
 				
 				#Check if agent is done
 				if self.__agent_wants_to_stop(response['message']['content']):
@@ -70,7 +101,7 @@ class FeatureOptimizerAgent:
 			if self.experiment_count % 25 == 0 and self.experiment_count > 0:
 				messages.append({
 					'role': 'user',
-					'content': self.__get_checkpoint_prompt
+					'content': self.__get_checkpoint_prompt()
 				})
 		
 		self.__print_final_summary()
@@ -95,25 +126,23 @@ class FeatureOptimizerAgent:
 		- Offensive: avg_points_scored, avg_pass_adjusted_yards_per_attempt, avg_rushing_yards_per_attempt, avg_turnovers, avg_penalty_yards, avg_sack_yards_lost
 		- Defensive: avg_points_allowed, avg_pass_adjusted_yards_per_attempt_allowed, avg_rushing_yards_per_attempt_allowed, avg_turnovers_forced, avg_sack_yards_gained
 		- Overall: avg_point_differential
-		
-		IMPORTANT: DO NOT TRY TO PASS THE TARGET COLUMNS (e.g. "team_a_predicted_spread" or "team_b_win"). THIS WILL NOT WORK.
-		
-		Each stat (except ratings/days_rest/elo/rpi_rating) comes in L3, L5, and L7 variants.
-						
+								
 		YOUR STRATEGY:
+		Plan 5 experiments at a time and execute them sequentially by calling the tool. After executing those 5 experiments, analyze the results and plan the next 5 experiments.
+		
 		Phase 1 (first 50-75 experiments): Explore broadly
 		- Test different window lengths (L3 vs L5 vs L7)
 		- Identify which feature categories matter most
 		- Test each model type at least a few times
 		- Remove clearly useless features
 		
-		Phase 2 (main optimization): Focus on promising models
-		- Deep dive on models showing best performance
+		Phase 2 (main optimization): Focus on promising model and feature set combinations
+		- Deep dive on those models showing the best performance
 		- Test combinations of top features
 		- Refine based on feature importance feedback
 		
 		Phase 3 (final validation): Validate best solutions
-		- Test your top feature sets on all models
+		- Test your feature sets on all models
 		- Ensure robustness
 		
 		EXPERIMENT INTERPRETATION:
@@ -136,7 +165,17 @@ class FeatureOptimizerAgent:
 		2. What does feature_importance tell you?
 		3. What should you try next?
 		
-		Be systematic, learn from each experiment, and find the optimal features!"""
+		Be systematic, learn from each experiment, and find the optimal features!
+		
+		CRITICAL INSTRUCTIONS:
+		- You MUST call the train_and_evaluate_model tool to run experiments
+		- NEVER generate fake JSON results
+		- NEVER pretend you ran an experiment
+		- WAIT for real tool results before analyzing
+		- If you see JSON in your response, you are doing it wrong
+		
+		After analyzing results, immediately call the tool for your next experiment.
+		Do not write fake results. Do not role-play. Use the tool."""
 			
 	def __get_initial_prompt(self):
 		"""Initial user message to start the agent"""
@@ -254,13 +293,13 @@ class FeatureOptimizerAgent:
 		else:
 			# FOR DEBUGGING THE NASTY BUG I HAD BEFORE
 			old_result = self.best_results[model_name]
-			print(f"\n🔍 DEBUG: Comparing to previous best:")
-			print(f"   Previous best keys: {list(old_result.keys())}")
-			print(f"   Previous best: {old_result}")
-			 
+			# print(f"\n🔍 DEBUG: Comparing to previous best:")
+			# print(f"   Previous best keys: {list(old_result.keys())}")
+			# print(f"   Previous best: {old_result}")
+			#  
 			old_metric = self.__get_primary_metric(old_result)
-			print(f"   old_metric returned: {old_metric}")
-			print(f"   current metric: {metric}")
+			# print(f"   old_metric returned: {old_metric}")
+			# print(f"   current metric: {metric}")
 			if old_metric is None:
 				print("   ⚠️  old_metric is None! Replacing.")
 				self.best_results[model_name] = result
