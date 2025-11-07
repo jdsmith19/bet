@@ -2,10 +2,10 @@
 
 # SMALL
 
+Be smarter about home / away splits -- take into account neutral site games (probably just use all away features instead?)
+
 # MEDIUM
 
-Add RPI
-Add Home / Away Splits
 Change how I pull upcoming games
 	* Pull all upcoming games from ProFootballReference
 	* Include Week #
@@ -13,7 +13,6 @@ Change how I pull upcoming games
 
 # LARGE
 
-Build an agent to test and refine model results across all available features
 
 ## DONE
 Add Logistic Regression
@@ -22,3 +21,6 @@ Return data from all predictions in a JSON dictionary format
 Create a parent class for all prediction engines that the individual classes inherit from
 Add season reset to ELO rating.
 Add rolling aggregates for at least [3,5,7] days
+Add RPI
+Add Home / Away Splits
+Build an agent to test and refine model results across all available features

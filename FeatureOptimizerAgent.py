@@ -179,7 +179,7 @@ class FeatureOptimizerAgent:
 		After analyzing results, immediately call the tool for your next experiment.
 		Do not write fake results. Do not role-play. Use the tool.
 		
-		If you have found the best possible combinations and do not think you can find anything better for any model, start your message with "optimization complete"
+		Be exhaustive, try lots of different possible combination types. If you are very confident that the results cannot improve and have found the best possible combinations, start your message with "optimization complete"
 		"""
 			
 	def __get_initial_prompt(self):
