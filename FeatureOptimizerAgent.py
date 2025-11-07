@@ -46,9 +46,7 @@ class FeatureOptimizerAgent:
 			MAX_MESSAGES = 60
 			if len(messages) > MAX_MESSAGES:
 				print(f"Trimming messages...")
-				best_summary = f"""You appear to be stuck. The last two responses have been empty.
-				
-				BEST RESULTS SO FAR (Experiment {self.experiment_count}:
+				best_summary = f"""BEST RESULTS SO FAR (Experiment {self.experiment_count}:
 				
 				{ self.__format_all_best_results() }
 				
@@ -104,6 +102,7 @@ class FeatureOptimizerAgent:
 					self.empty_response_count += 1
 					if self.empty_response_count >= self.max_consecutive_empty_responses:
 						intervention_message = f"You appear to be stuck in a loop. You've responded with nothing on the last { self.max_consecutive_empty_responses } iterations. Immediately plan and execute your next experiment."
+						print(intervention_message)
 						messages.append({
 							'role': 'user',
 							'content': intervention_message
