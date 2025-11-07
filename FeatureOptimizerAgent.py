@@ -98,7 +98,7 @@ class FeatureOptimizerAgent:
 					
 					# Print summary
 					self.__print_result_summary(result)
-			elif (response['message']['content'] or len(response['message']['content'] > 10)):
+			elif response['message']['content'] or len(response['message']['content']) > 10:
 				# Agent is thinking / explaining, not calling a tool
 				print(f"\n{'='*80}")
 				print(f"Agent is thinking...")
