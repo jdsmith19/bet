@@ -94,10 +94,10 @@ class FeatureOptimizerAgent:
 				print(f"\n{'='*80}\n")
 				print(f"Agent: { response['message']['content'] }")
 				if not response['message']['content'] or len(response['message']['content']) < 10:
-					printf("Agent responded with nothing. Incrementing empty_response_count in case we need to prompt it to break its loop.")
+					print(f"Agent responded with nothing. Incrementing empty_response_count in case we need to prompt it to break its loop.")
 					self.empty_response_count += 1
-					if self.empty_response_count >= 2:
-						intervention_message = f"You appear to be stuck in a loop. You've responded with nothing on the last two iterations. Immediately plan and execute your next experiment."
+					if self.empty_response_count >= 3:
+						intervention_message = f"You appear to be stuck in a loop. You've responded with nothing on the last three iterations. Immediately plan and execute your next experiment."
 						messages.append({
 							'role': 'user',
 							'content': intervention_message
