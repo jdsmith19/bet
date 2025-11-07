@@ -46,7 +46,9 @@ class FeatureOptimizerAgent:
 			MAX_MESSAGES = 60
 			if len(messages) > MAX_MESSAGES:
 				print(f"Trimming messages...")
-				best_summary = f"""BEST RESULTS SO FAR (Experiment {self.experiment_count}):
+				best_summary = f"""BEST RESULTS SO FAR (Experiment {self.experiment_count}:
+					{ self.best_results }"""):
+				print(f"Reminding the agent of the {best_summary}")
 
 				{ self.__format_all_best_results() }
 				

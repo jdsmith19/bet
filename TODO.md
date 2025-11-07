@@ -13,6 +13,9 @@ Change how I pull upcoming games
 
 # LARGE
 
+# VERY LARGE
+
+Incorporate injury reports
 
 ## DONE
 Add Logistic Regression
