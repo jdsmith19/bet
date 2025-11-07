@@ -89,7 +89,7 @@ class FeatureOptimizerAgent:
 				print(f"Experiment {self.experiment_count + 1} / {self.max_experiments}")
 				print(f"{'='*80}\n")
 				# Process tool calls
-				if self.model == 'qwen3:32B':
+				if self.model_name == 'qwen3:32B':
 					this_message = response.message['thinking']
 				else:
 					this_message = response['message']['content']
