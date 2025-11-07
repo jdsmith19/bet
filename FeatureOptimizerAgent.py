@@ -41,11 +41,12 @@ class FeatureOptimizerAgent:
 				print(f"   This may cause slowness or model confusion!")
 			
 			print(f"{'='*80}\n")
-			MAX_MESSAGES = 50
+			MAX_MESSAGES = 80
 			if len(messages) > MAX_MESSAGES:
+				print(f"Trimming messages...")
 				best_summary = f"""BEST RESULTS SO FAR (Experiment {self.experiment_count}):
-					
-				{self._format_all_best_results()}
+
+				{ self.__format_all_best_results() }
 				
 				Continue optimization using these insights."""
 				messages = [
@@ -130,7 +131,7 @@ class FeatureOptimizerAgent:
 		YOUR STRATEGY:
 		Plan 5 experiments at a time and execute them sequentially by calling the tool. After executing those 5 experiments, analyze the results and plan the next 5 experiments.
 		
-		Phase 1 (first 50-75 experiments): Explore broadly
+		Phase 1 (first 100-150 experiments): Explore broadly
 		- Test different window lengths (L3 vs L5 vs L7)
 		- Identify which feature categories matter most
 		- Test each model type at least a few times
@@ -175,7 +176,10 @@ class FeatureOptimizerAgent:
 		- If you see JSON in your response, you are doing it wrong
 		
 		After analyzing results, immediately call the tool for your next experiment.
-		Do not write fake results. Do not role-play. Use the tool."""
+		Do not write fake results. Do not role-play. Use the tool.
+		
+		If you have found the best possible combinations and do not think you can find anything better for any model, start your message with "optimization complete"
+		"""
 			
 	def __get_initial_prompt(self):
 		"""Initial user message to start the agent"""
@@ -316,7 +320,7 @@ class FeatureOptimizerAgent:
 	def __format_metric(self, result):
 		"""Format metric for display"""
 		if result.get('target') == 'point_differential':
-			return f"MAE={result.get('mean_absolute_error'):.2f}, RMSE={result.get('rmse'):.2f}"
+			return f"MAE={result.get('mean_absolute_error'):.2f}, RMSE={result.get('root_mean_squared_error'):.2f}"
 		return f"Accuracy={result.get('test_accuracy'):.1%}"
 	
 	def __print_result_summary(self, result):
@@ -373,6 +377,121 @@ class FeatureOptimizerAgent:
 		self._save_results()
 	
 	def __save_results(self):
+		"""Save experiment history to file"""
+		output = {
+			'total_experiments': self.experiment_count,
+			'best_results': self.best_results,
+			'experiment_history': self.experiment_history
+		}
+		
+		with open('feature_optimization_results.json', 'w') as f:
+			json.dump(output, f, indent=2, default=str)
+		
+		print(f"💾 Results saved to feature_optimization_results.json")
+	
+	def __format_all_best_results(self):
+		"""Format all best results for context summary"""
+		if not self.best_results:
+			return "No results yet."
+		
+		lines = []
+		
+		# Group by model type
+		regression_models = ['XGBoost', 'LinearRegression', 'RandomForest']
+		classification_models = ['LogisticRegression', 'KNearest']
+		
+		# Format regression models
+		if any(model in self.best_results for model in regression_models):
+			lines.append("REGRESSION MODELS (predicting point_differential):")
+			for model_name in regression_models:
+				if model_name in self.best_results:
+					result = self.best_results[model_name]
+					mae = result.get('mean_absolute_error')
+					rmse = result.get('root_mean_squared_error')
+					features = result.get('features_used', [])
+					
+					lines.append(f"\n{model_name}:")
+					lines.append(f"  MAE: {mae:.3f}, RMSE: {rmse:.3f}")
+					lines.append(f"  Features ({len(features)}): {', '.join(features[:10])}")
+					
+					# Show top 3 features if available
+					if result.get('feature_importance'):
+						top_3 = list(result['feature_importance'].items())[:3]
+						top_features = ', '.join([f[0] for f in top_3])
+						lines.append(f"  Top features: {top_features}")
+		
+		# Format classification models
+		if any(model in self.best_results for model in classification_models):
+			lines.append("\n\nCLASSIFICATION MODELS (predicting win):")
+			for model_name in classification_models:
+				if model_name in self.best_results:
+					result = self.best_results[model_name]
+					test_acc = result.get('test_accuracy')
+					train_acc = result.get('train_accuracy')
+					features = result.get('features_used', [])
+					
+					lines.append(f"\n{model_name}:")
+					lines.append(f"  Test Accuracy: {test_acc:.1%}, Train Accuracy: {train_acc:.1%}")
+					lines.append(f"  Features ({len(features)}): {', '.join(features[:10])}")
+					
+					# Show confidence calibration if available
+					if result.get('confidence_intervals'):
+						best_interval = result['confidence_intervals'][-1]  # Highest confidence
+						for key, value in best_interval.items():
+							threshold = key.split('_')[-1]
+							acc = value.get('accuracy', 0)
+							count = value.get('count_predictions', 0)
+							lines.append(f"  At >{threshold} confidence: {acc:.1%} accuracy ({count} predictions)")
+							break  # Just show one
+		
+		# Add key insights
+		lines.append("\n\nKEY INSIGHTS:")
+		
+		# Find best overall regression model
+		best_regression = None
+		best_mae = float('inf')
+		for model in regression_models:
+			if model in self.best_results:
+				mae = self.best_results[model].get('mean_absolute_error', float('inf'))
+				if mae < best_mae:
+					best_mae = mae
+					best_regression = model
+		
+		if best_regression:
+			lines.append(f"- Best regression: {best_regression} (MAE={best_mae:.3f})")
+		
+		# Find best classification model
+		best_classification = None
+		best_acc = 0
+		for model in classification_models:
+			if model in self.best_results:
+				acc = self.best_results[model].get('test_accuracy', 0)
+				if acc > best_acc:
+					best_acc = acc
+					best_classification = model
+		
+		if best_classification:
+			lines.append(f"- Best classification: {best_classification} (Accuracy={best_acc:.1%})")
+		
+		# Common features across best models
+		all_features = set()
+		for result in self.best_results.values():
+			all_features.update(result.get('features_used', []))
+		
+		if all_features:
+			# Find most common features
+			feature_counts = {}
+			for result in self.best_results.values():
+				for feature in result.get('features_used', []):
+					feature_counts[feature] = feature_counts.get(feature, 0) + 1
+			
+			common_features = sorted(feature_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+			common_list = ', '.join([f[0] for f in common_features])
+			lines.append(f"- Most used features: {common_list}")
+		
+		return '\n'.join(lines)
+	
+	def _save_results(self):
 		"""Save experiment history to file"""
 		output = {
 			'total_experiments': self.experiment_count,

@@ -3,3 +3,4 @@ venv/
 config.py
 db/
 *.pyc
+feature_optimization_results.json
