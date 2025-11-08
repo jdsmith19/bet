@@ -186,17 +186,23 @@ class FeatureOptimizerAgent:
 				- WRONG: avg_points_scored_l3_home, avg_points_scored_l5_away
 									
 			YOUR STRATEGY:
-			Plan experiments and execute them sequentially by calling the tool. Continue experimenting until you reach the maximum experiment count.
+			Plan experiments in batches of 5 to 10 and execute them sequentially by calling the tool. Continue experimenting until you reach the maximum experiment count.
 			
-			Phase 1 (experiments 1-150): Explore broadly
+			Phase 1 (experiments 1 - 100): Seemingly random
+			- Test all different types of combinations of features
+			- Analyze the results of your findings and start cataloguing your findings, but don't try to optimize yet for any specific features
+			- You are not complete with Phase 1 until you have run an experiment testing every possible feature across every model
+			
+			Phase 1 (experiments 100-200): Explore broadly
+			- Use your findings to start testing combinations based on features that were most promising
 			- Test different window lengths (L3 vs L5 vs L7)
 			- Test home/away splits vs window lengths
 			- Identify which feature categories matter most
 			- Test each model type multiple times with different feature combinations
 			- Try unusual combinations to discover hidden patterns
 			
-			Phase 2 (experiments 151-400): Deep optimization
-			- Focus on the most promising models
+			Phase 2 (experiments 201-400): Deep optimization
+			- Focus on getting the best result from every model
 			- Test fine-grained variations of successful feature sets
 			- Add/remove individual features to find the perfect balance
 			- Test different ratios of offensive vs defensive features
