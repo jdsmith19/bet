@@ -184,6 +184,9 @@ class FeatureOptimizerAgent:
 			- DO NOT COMBINE L3 / L5 / L7 or HOME / AWAY
 				- RIGHT: avg_points_scored_l3, avg_points_scored_home
 				- WRONG: avg_points_scored_l3_home, avg_points_scored_l5_away
+			- DO NOT TRY TO DUPLICATE FEATURES
+				- RIGHT: ['avg_points_scored_l3', 'rpi_rating']
+				- WRONG: ['rpi_rating', 'rpi_rating']
 									
 			YOUR STRATEGY:
 			Plan experiments in batches of 5 to 10 and execute them sequentially by calling the tool. Continue experimenting until you reach the maximum experiment count.
