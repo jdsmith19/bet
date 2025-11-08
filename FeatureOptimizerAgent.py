@@ -172,7 +172,7 @@ class FeatureOptimizerAgent:
 			- KNearest (classification: win)
 			
 			AVAILABLE FEATURES (39 total):
-			- Ratings: elo, rpi, days_rest (IMPORTANT: DO NOT PRE-PEND RATINGS FEATURES WITH team_a or team_b)
+			- Ratings: elo_rating, rpi_rating, days_rest (IMPORTANT: DO NOT PRE-PEND RATINGS FEATURES WITH team_a or team_b)
 			You have multiple window lengths (L3, L5, L7) OR home and away splits (home, away) for the following rolling statistics:
 			- Offensive: avg_points_scored, avg_pass_adjusted_yards_per_attempt, avg_rushing_yards_per_attempt, avg_turnovers, avg_penalty_yards, avg_sack_yards_lost
 			- Defensive: avg_points_allowed, avg_pass_adjusted_yards_per_attempt_allowed, avg_rushing_yards_per_attempt_allowed, avg_turnovers_forced, avg_sack_yards_gained
