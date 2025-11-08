@@ -88,9 +88,9 @@ class FeatureOptimizerAgent:
 				print(f"{msg.content}\n")
 			
 			# Show tool calls
-			if msg['tool_calls']:
-				for tc in msg['tool_calls']:
-					args = json.loads(tc.function.arguments)
+			if msg.tool_calls:
+				for tc in msg.tool_calls:
+					args = tc.function.arguments
 					print(f"🔧 ACTION:")
 					print(f"   Model: {args.get('model_name')}")
 					print(f"   Features ({len(args.get('features', []))}): {args.get('features')}\n")
