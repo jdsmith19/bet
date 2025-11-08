@@ -73,7 +73,20 @@ class FeatureOptimizerAgent:
 				tools = [self.__get_tool_definition()]
 			)
 			
-			print(response)
+			# Print EVERYTHING
+			print("\n" + "="*80)
+			print("FULL RESPONSE DEBUG")
+			print("="*80)
+			print(f"Content: '{response['message'].get('content')}'")
+			print(f"Content length: {len(response['message'].get('content', ''))}")
+			print(f"Thinking: {response['message'].get('thinking')}")
+			print(f"Tool calls: {response['message'].get('tool_calls')}")
+			print(f"Role: {response['message'].get('role')}")
+			
+			# Check if there are any other fields
+			print(f"\nAll message keys: {response['message'].keys()}")
+			print(f"\nFull message: {response['message']}")
+			print("="*80 + "\n")
 			
 			current_message = response['message']['content']
 			print(f"Current Message: {current_message}")
