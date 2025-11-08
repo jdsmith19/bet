@@ -212,6 +212,12 @@ class FeatureOptimizerAgent:
 			IMPORTANT: Do NOT stop early! Even small improvements (0.01 MAE reduction, 0.1% accuracy gain) are valuable.
 			Keep experimenting with new combinations until you hit the experiment limit.
 			
+			IDEAS:
+			Previous iterations have found the following things provide strong positive signals.
+			- Home and away metrics are very important. Don't ignore using the _home and _away suffixes.
+			- rpi_rating and elo_rating are very strong signals
+			- average_point_differential and points_scored give good signals to a teams overall historic performance
+			
 			EXPERIMENT INTERPRETATION:
 			Regression models (XGBoost, LinearRegression, RandomForest):
 			- Primary metric: MAE (Mean Absolute Error) - LOWER IS BETTER
