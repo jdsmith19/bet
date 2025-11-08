@@ -189,7 +189,7 @@ class FeatureOptimizerAgent:
 				- WRONG: ['rpi_rating', 'rpi_rating']
 									
 			YOUR STRATEGY:
-			Plan experiments in batches of 5 to 10 and execute them sequentially by calling the tool. Continue experimenting until you reach the maximum experiment count.
+			Plan experiments in batches of 5 to 10 and execute them sequentially by calling the tool. Continue experimenting until you reach the maximum experiment count. Don't forget to call the tool!
 			
 			Phase 1 (experiments 1 - 100): Seemingly random
 			- Test all different types of combinations of features
@@ -227,6 +227,8 @@ class FeatureOptimizerAgent:
 			Keep experimenting with new combinations until you hit the experiment limit.
 			
 			CHECKPOINTS: Every 25 experiments, you will hit a checkpoint where your current best findings will be summarized. When analyzing the data from the checkpoint, do not forget which Phase you are currently in. You must complete the objective of each phase before moving onto the next one.
+			
+			INTERVENTIONS: Sometimes you get stucka nd don't return a response. I'll remind you to keep going. When this happens do not forget which Phase you are currently in. You must complete the objective of each phase before moving onto the next one.
 			
 			IDEAS:
 			Previous iterations have found the following things provide strong positive signals.
