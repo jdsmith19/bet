@@ -43,7 +43,7 @@ class FeatureOptimizerAgent:
 				print(f"   This may cause slowness or model confusion!")
 			
 			print(f"{'='*80}\n")
-			MAX_MESSAGES = 60
+			MAX_MESSAGES = 100
 			if len(messages) > MAX_MESSAGES:
 				print(f"Trimming messages...")
 				best_summary = f"""BEST RESULTS SO FAR (Experiment {self.experiment_count}:
@@ -52,12 +52,18 @@ class FeatureOptimizerAgent:
 				
 				Continue optimization using your available insights."""
 				
+				filtered_messages = [messages[0]]
+				for msg in messages[1:]:
+					if msg.get('role') == 'user' and 'BEST RESULTS SO FAR' in msg.get('content', ''):
+						continue  # Skip old summaries
+					filtered_messages.append(msg)
+				
 				print(f"Reminding the agent of the { best_summary }")
-
+				
 				messages = [
-					messages[0],  # System prompt
-					{'role': 'user', 'content': best_summary},
-					*messages[-(MAX_MESSAGES-2):]  # Recent experiments
+					filtered_messages[0],  # System
+					{'role': 'user', 'content': best_summary},  # NEW summary only
+					*filtered_messages[-(MAX_MESSAGES-10):]  # Last 38 messages (no old summaries)
 				]
 			
 			# Get agent's response
