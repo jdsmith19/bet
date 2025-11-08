@@ -171,7 +171,7 @@ class FeatureOptimizerAgent:
 			- LogisticRegression (classification: win)
 			- KNearest (classification: win)
 			
-			AVAILABLE FEATURES (39 total):
+			AVAILABLE FEATURES (63 total):
 			- Ratings: elo_rating, rpi_rating, days_rest (IMPORTANT: DO NOT PRE-PEND RATINGS FEATURES WITH team_a or team_b)
 			You have multiple window lengths (L3, L5, L7) OR home and away splits (home, away) for the following rolling statistics:
 			- Offensive: avg_points_scored, avg_pass_adjusted_yards_per_attempt, avg_rushing_yards_per_attempt, avg_turnovers, avg_penalty_yards, avg_sack_yards_lost
