@@ -72,28 +72,34 @@ class FeatureOptimizerAgent:
 				messages = messages,
 				tools = [self.__get_tool_definition()]
 			)
+			msg = response['message']
 			
-			# Print EVERYTHING
-			print("\n" + "="*80)
-			print("FULL RESPONSE DEBUG")
-			print("="*80)
-			print(f"Content: '{response['message'].get('content')}'")
-			print(f"Content length: {len(response['message'].get('content', ''))}")
-			print(f"Thinking: {response['message'].get('thinking')}")
-			print(f"Tool calls: {response['message'].get('tool_calls')}")
-			print(f"Role: {response['message'].get('role')}")
+			print(f"\n{'='*80}")
+			print(f"🤖 Agent Response (Experiment {self.experiment_count + 1})")
+			print(f"{'='*80}\n")
 			
-			# Check if there are any other fields
-			print(f"\nAll message keys: {response['message'].keys()}")
-			print(f"\nFull message: {response['message']}")
-			print("="*80 + "\n")
+			# Show the thinking (chain-of-thought)
+			if msg.thinking:
+				print(f"🧠 REASONING:")
+				print(f"{msg.thinking}\n")
+				
+			if msg.content:
+				print(f"💬 EXPLANATION:")
+				print(f"{msg.content}\n")
 			
-			current_message = response['message']['content']
-			print(f"Current Message: {current_message}")
-			has_message = False
+			# Show tool calls
+			if msg.tool_calls:
+				for tc in msg.tool_calls:
+					args = json.loads(tc.function.arguments)
+					print(f"🔧 ACTION:")
+					print(f"   Model: {args.get('model_name')}")
+					print(f"   Features ({len(args.get('features', []))}): {args.get('features')}\n")
 			
+			print(f"{'='*80}\n")
+			
+			missing_response = (not msg.thinking or len(msg.thinking) < 10) and (not msg.content or len(msg.content) < 10) and (not msg.tool_calls or len(msg.tool_calls) < 10)				
 			# Add assistant's message to history
-			if (not current_message or len(current_message) < 10) and not response['message'].get('tool_calls'):
+			if (missing_response):
 				intervention_message = f"You appear to be stuck. You gave me an empty response. Immediately plan and execute your next experiment."
 				print(intervention_message)
 				messages.append({
@@ -105,16 +111,11 @@ class FeatureOptimizerAgent:
 				has_message = True
 			
 			# Check if agent wants to use tool
-			if response['message'].get('tool_calls'):
+			if msg.get('tool_calls'):
 				print(f"\n{'='*80}")
 				print(f"Experiment {self.experiment_count + 1} / {self.max_experiments}")
 				print(f"{'='*80}\n")
 				# Process tool calls
-				if self.model_name == 'qwen3:32B':
-					this_message = response.message['thinking']
-				else:
-					this_message = response['message']['content']
-				print(f"Agent: { this_message }\n")
 				for tool_call in response['message']['tool_calls']:
 					result = self.__execute_tool(tool_call)
 					
