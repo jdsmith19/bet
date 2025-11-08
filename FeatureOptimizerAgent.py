@@ -217,6 +217,7 @@ class FeatureOptimizerAgent:
 			- Home and away metrics are very important. Don't ignore using the _home and _away suffixes.
 			- rpi_rating and elo_rating are very strong signals
 			- average_point_differential and points_scored give good signals to a teams overall historic performance
+			- Be sure to focus on the top features from the result. Trying tdifferent combinations and looking at the top results will help you understand which features have the biggest impact.
 			
 			EXPERIMENT INTERPRETATION:
 			Regression models (XGBoost, LinearRegression, RandomForest):
