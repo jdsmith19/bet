@@ -72,7 +72,9 @@ class FeatureOptimizerAgent:
 				messages = messages,
 				tools = [self.__get_tool_definition()]
 			)
-						
+			
+			print(response)
+			
 			current_message = response['message']['content']
 			print(f"Current Message: {current_message}")
 			has_message = False
