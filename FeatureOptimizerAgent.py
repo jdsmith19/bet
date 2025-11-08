@@ -191,9 +191,10 @@ class FeatureOptimizerAgent:
 			Phase 1 (experiments 1 - 100): Seemingly random
 			- Test all different types of combinations of features
 			- Analyze the results of your findings and start cataloguing your findings, but don't try to optimize yet for any specific features
+			- You can have as many features in a single tool call as you want, but the model will likely begin to overfit with too many features
 			- You are not complete with Phase 1 until you have run an experiment testing every possible feature across every model
 			
-			Phase 1 (experiments 100-200): Explore broadly
+			Phase 2 (experiments 100-200): Explore broadly
 			- Use your findings to start testing combinations based on features that were most promising
 			- Test different window lengths (L3 vs L5 vs L7)
 			- Test home/away splits vs window lengths
@@ -221,6 +222,8 @@ class FeatureOptimizerAgent:
 			IDEAS:
 			Previous iterations have found the following things provide strong positive signals.
 			- Home and away metrics are very important. Don't ignore using the _home and _away suffixes.
+			- You should explore home and away metrics in conjunction with each other for the same feature.
+				- Since only one team in a matchup can be home or away, the goal is to compare the teams corresponding performance when predicting the matchup
 			- rpi_rating and elo_rating are very strong signals
 			- average_point_differential and points_scored give good signals to a teams overall historic performance
 			- Be sure to focus on the top features from the result. Trying tdifferent combinations and looking at the top results will help you understand which features have the biggest impact.
