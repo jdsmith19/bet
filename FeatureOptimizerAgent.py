@@ -223,6 +223,8 @@ class FeatureOptimizerAgent:
 			IMPORTANT: Do NOT stop early! Even small improvements (0.01 MAE reduction, 0.1% accuracy gain) are valuable.
 			Keep experimenting with new combinations until you hit the experiment limit.
 			
+			CHECKPOINTS: Every 25 experiments, you will hit a checkpoint where your current best findings will be summarized. When analyzing the data from the checkpoint, do not forget which Phase you are currently in. You must complete the objective of each phase before moving onto the next one.
+			
 			IDEAS:
 			Previous iterations have found the following things provide strong positive signals.
 			- Home and away metrics are very important. Don't ignore using the _home and _away suffixes.
