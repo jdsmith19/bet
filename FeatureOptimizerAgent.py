@@ -192,6 +192,7 @@ class FeatureOptimizerAgent:
 			- Test all different types of combinations of features
 			- Analyze the results of your findings and start cataloguing your findings, but don't try to optimize yet for any specific features
 			- You can have as many features in a single tool call as you want, but the model will likely begin to overfit with too many features
+			- Experiment with very small and very large feature sets. Try all 61 features in a tool call, 1 at a time, and in between
 			- You are not complete with Phase 1 until you have run an experiment testing every possible feature across every model
 			
 			Phase 2 (experiments 100-200): Explore broadly
