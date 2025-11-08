@@ -176,11 +176,14 @@ class FeatureOptimizerAgent:
 			You have multiple window lengths (L3, L5, L7) OR home and away splits (home, away) for the following rolling statistics:
 			- Offensive: avg_points_scored, avg_pass_adjusted_yards_per_attempt, avg_rushing_yards_per_attempt, avg_turnovers, avg_penalty_yards, avg_sack_yards_lost
 			- Defensive: avg_points_allowed, avg_pass_adjusted_yards_per_attempt_allowed, avg_rushing_yards_per_attempt_allowed, avg_turnovers_forced, avg_sack_yards_gained
+			- Overall: avg_points_differential
+			- Usage: These can be expressed as avg_points_scored_l3 or avg_points_scored_home
+			- DO NOT CALL THESE FEATURES WITHOUT APPENDING EITHER A WINDOW OR LOCATION SPLIT
+				- RIGHT: avg_point_differential_l3, avg_point_differential_home
+				- WRONG: avg_point_differential, points_scored
 			- DO NOT COMBINE L3 / L5 / L7 or HOME / AWAY
 				- RIGHT: avg_points_scored_l3, avg_points_scored_home
 				- WRONG: avg_points_scored_l3_home, avg_points_scored_l5_away
-			- Overall: avg_point_differential
-			- Usage: These can be expressed as avg_points_scored_l3 or avg_points_scored_home
 									
 			YOUR STRATEGY:
 			Plan experiments and execute them sequentially by calling the tool. Continue experimenting until you reach the maximum experiment count.
