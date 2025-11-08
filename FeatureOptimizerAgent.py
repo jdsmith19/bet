@@ -190,10 +190,13 @@ class FeatureOptimizerAgent:
 			
 			Phase 1 (experiments 1 - 100): Seemingly random
 			- Test all different types of combinations of features
-			- Analyze the results of your findings and start cataloguing your findings, but don't try to optimize yet for any specific features
+			- Don't test one feature at a time, that will take too long. Batch features into at least 5 at a time.
+			- Use random combinations, don't try to correlate findings yet. That will happen in the next Phase
 			- You can have as many features in a single tool call as you want, but the model will likely begin to overfit with too many features
-			- Experiment with very small and very large feature sets. Try all 61 features in a tool call, 1 at a time, and in between
-			- You are not complete with Phase 1 until you have run an experiment testing every possible feature across every model
+			- Experiment with very large feature sets. Try an experiment with all 61 features in a tool call.
+			- You are not complete with Phase 1 until you have tested every possible feature across every model
+				- This can be done in as few as 5 or as many as 315 experiments
+				- Don't optimize for as few experiments as possible or you will not have a lot of information when you proceed to Phase 2
 			
 			Phase 2 (experiments 100-200): Explore broadly
 			- Use your findings to start testing combinations based on features that were most promising
@@ -203,7 +206,7 @@ class FeatureOptimizerAgent:
 			- Test each model type multiple times with different feature combinations
 			- Try unusual combinations to discover hidden patterns
 			
-			Phase 2 (experiments 201-400): Deep optimization
+			Phase 3 (experiments 201-400): Deep optimization
 			- Focus on getting the best result from every model
 			- Test fine-grained variations of successful feature sets
 			- Add/remove individual features to find the perfect balance
@@ -211,7 +214,7 @@ class FeatureOptimizerAgent:
 			- Experiment with minimal feature sets (fewer features, similar performance)
 			- Try combining different window lengths for different feature types
 			
-			Phase 3 (experiments 401-{self.max_experiments}): Final refinement and validation
+			Phase 4 (experiments 401-{self.max_experiments}): Final refinement and validation
 			- Test your best feature sets on all models for comparison
 			- Try last-minute variations and edge cases
 			- Validate robustness across model types
