@@ -994,8 +994,8 @@ class NFLDepthChartAnalyzer:
 			'high_count': len(injury_df[injury_df['impact_level'] == 'HIGH']),
 			'starter_injuries': len(injury_df[injury_df['is_starter'] == True]),
 			'key_positions_affected': injury_df[injury_df['is_starter'] == True]['position'].tolist(),
-			'offensive_impact': injury_df[injury_df['position'].isin(offensive_positions)]['impact_score'].sum(),
-			'defensive_impact': injury_df[~injury_df['position'].isin(offensive_positions + ['K', 'P', 'LS', 'KR', 'PR'])]['impact_score'].sum()
+			'offensive_impact': float(injury_df[injury_df['position'].isin(offensive_positions)]['impact_score'].sum()),
+			'defensive_impact': float(injury_df[~injury_df['position'].isin(offensive_positions + ['K', 'P', 'LS', 'KR', 'PR'])]['impact_score'].sum())
 		}
 		
 		return {

@@ -42,7 +42,7 @@ class InjuryAdjustmentAgent:
 				empty_responses += 1
 			
 			print(f"\n{'='*80}")
-			print(f"🤖 Agent Response")
+			print(f"🩹 Injury Adjustment Agent Response")
 			print(f"{'='*80}\n")
 			
 			# Show the thinking (chain-of-thought)
@@ -73,7 +73,7 @@ class InjuryAdjustmentAgent:
 							
 				if 'injury report complete' in msg.content.lower():
 					print(f"Exiting injury adjustment Agent")
-					finished = true
+					finished = True
 					return self.aggregates
 						
 			print(f"{'='*80}\n")

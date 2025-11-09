@@ -36,7 +36,7 @@ class PredictionAgent:
 			messages.append(response['message'])
 			
 			print(f"\n{'='*80}")
-			print(f"🤖 Agent Response")
+			print(f"🔮 Prediction Agent Response")
 			print(f"{'='*80}\n")
 			
 			# Show the thinking (chain-of-thought)
@@ -92,8 +92,8 @@ class PredictionAgent:
 		
 		STEP 3: GET INJURY ADJUSTMENTS
 		- Pass the injury report to the get_injury_adjustments tool
-		- Pass the raw text you got from the get_injury_report tool as a string.
-		- Pass the entire injury report, do not truncate.
+		- Pass the raw text you got from the get_injury_report tool as a string
+		- Pass the entire injury report, do not truncate no matter how big the JSON string is
 				
 		STEP 4: GET INJURY-ADJUSTED PREDICTIONS  
 		- Call get_upcoming_predictions again
@@ -248,7 +248,8 @@ class PredictionAgent:
 				result = get_injury_report_for_teams(
 					teams = arguments['teams']
 				)
-				return result
+				#print(result)
+				return json.dumps(result)
 			except Exception as e:
 				return {
 					'error': str(e),
@@ -256,6 +257,7 @@ class PredictionAgent:
 				}
 		
 		elif function_name == 'get_injury_adjustments':
+			print(arguments)
 			iaa = InjuryAdjustmentAgent(arguments['injury_report'])
 			try:
 				self.adjusted_aggregates = iaa.run()
