@@ -24,7 +24,7 @@ def get_injury_report_for_teams(teams: list) -> dict:
 			requested_teams.append(team)
 			print(f"Generating detailed injury report for { team }")
 			try:
-				injury_reports.append(dca.get_llm_prompt_context(lu.team_name_to_espn_code(team)))
+				injury_reports.append(dca.get_injury_summary_for_agent(lu.team_name_to_espn_code(team)))
 			except Exception as e:
 				return traceback.print_exc()
 	return injury_reports

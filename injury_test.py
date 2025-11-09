@@ -9,5 +9,5 @@ prompt = analyzer.get_llm_prompt_context('buf')
 json_data = analyzer.to_json_for_llm('buf')
 
 # Send to your local LLM and get adjustment multipliers back
-print(json_data)
 print(prompt)
+print(json_data)
