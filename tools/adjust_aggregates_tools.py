@@ -5,7 +5,7 @@ import json
 import config
 import traceback
 
-def adjust_data_aggregates(adjustments: list) -> DataAggregate:
+def adjust_data_aggregates(adjustments: list, da: DataAggregate = None) -> DataAggregate:
 	"""
 	Makes adjustments to the prediction set of the data aggregates object
 	
@@ -16,7 +16,8 @@ def adjust_data_aggregates(adjustments: list) -> DataAggregate:
 		DataAggregate: A DataAggregate object with updated values
 	"""
 	print(f"Loading data aggregates")
-	da = DataAggregate(config.odds_api_key)
+	if not da:
+		da = DataAggregate(config.odds_api_key)
 	print(f"Adjusting features")
 	for adj in adjustments:
 		home_cols_to_update = [col for col in da.prediction_set.columns if (adj['feature'] in col and '_away' not in col)]

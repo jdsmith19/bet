@@ -1,0 +1,205 @@
+import config
+import json
+import ollama
+import config
+from helpers.Lookup import Lookup
+from tools.adjust_aggregates_tools import adjust_data_aggregates
+from DataAggregate.DataAggregate import DataAggregate
+
+class InjuryAdjustmentAgent:
+	def __init__(self, injury_report):
+		self.injury_report = injury_report
+		self.aggregates = DataAggregate(config.odds_api_key)
+	
+	def run(self):
+		"""Main agent loop"""
+		print(f"🚀 Starting Injury Adjustment Agent")
+		
+		finished = False
+		
+		# Initialize conversation with system prompt
+		messages = [
+			{ 'role': 'system', 'content': self.__get_system_prompt() },
+			{ 'role': 'user', 'content': self.__get_initial_prompt() }
+		]
+		
+		empty_responses = 0
+		
+		while not finished:
+			if empty_responses >= 3:
+				raise ValueError(f"I couldn't complete my task. You must have not passed me the data that I needed. Be sure to send me the full injury report as a text string.")
+			# Get agent's response
+			response = ollama.chat(
+				model = config.model,
+				messages = messages,
+				tools = self.__get_tool_definition()
+			)
+			
+			msg = response['message']
+			messages.append(response['message'])
+			
+			if not msg.thinking and not msg.content and not msg.tool_call:
+				empty_responses += 1
+			
+			print(f"\n{'='*80}")
+			print(f"🤖 Agent Response")
+			print(f"{'='*80}\n")
+			
+			# Show the thinking (chain-of-thought)
+			if msg.thinking:
+				print(f"🧠 REASONING:")
+				print(f"{msg.thinking}\n")
+				
+			if msg.content:
+				print(f"💬 EXPLANATION:")
+				print(f"{msg.content}\n")
+
+			if msg.get('tool_calls'):
+				# Process tool calls
+				for tool_call in response['message']['tool_calls']:
+					result = self.__execute_tool(tool_call)
+					
+					# Add tool result to messages
+					messages.append({
+						'role': 'tool',
+						'content': json.dumps(result)
+					})
+			elif msg:
+				# Agent is thinking / explaining, not calling a tool
+				print(f"\n{'='*80}")
+				print(f"Agent is thinking...")
+				print(f"\n{'='*80}\n")
+				print(f"Agent: { response['message']['content'] }")
+							
+				if 'injury report complete' in msg.content.lower():
+					print(f"Exiting injury adjustment Agent")
+					finished = self.aggregates
+						
+			print(f"{'='*80}\n")
+		
+	def __get_system_prompt(self):
+		"""System prompt with full context"""
+		
+		return f"""You are an injury adjustment specialist. You have ONE job.
+		
+		INPUT: 
+		- An exhaustive injury report for NFL teams
+		
+		OUTPUT:
+		- An object from a custom DataAggregate class
+		
+		TASK:
+		For each team in the injury report:
+		1. Read the injury report
+		3. Create 1-5 adjustment objects per team based on injuries
+		4. Add to your output list
+		5. Call the adjust_data_aggregates tool with the list of objects you create. YOU MUST USE THE LIST FORMAT SHOWN IN THE OUTPUT FORMAT SECTION BELOW.
+		
+		ADJUSTMENT RULES:
+		- QB injuries → reduce avg_pass_adjusted_yards_per_attempt
+		- RB injuries → reduce avg_rushing_yards_per_attempt
+		- OL injuries → reduce avg_sack_yards_lost
+		- WR injuries → reduce avg_pass_adjusted_yards_per_attempt
+		- DL injuries → reduce avg_sack_yards_gained
+		- DB injuries → reduce avg_pass_adjusted_yards_per_attempt_allowed
+		- Multiple severe injuries → also adjust avg_point_differential
+		- Use the injury Impact Score to determine how much to adjust
+		
+		SEVERITY GUIDE:
+		- Out/IR + Critical position + Signifidcant Impact Score = 0.85-0.88
+		- Out/IR + Important position + Significant Impact Score = 0.88-0.92
+		- Questionable + Critical + Significant Impact Score = 0.92-0.95
+		- Minor injuries + Significant Impact Score = 0.95-0.97
+		
+		OUTPUT FORMAT:
+		Return ONLY valid JSON, nothing else:
+		[
+		  {{"team_name": "Denver Broncos", "feature": "avg_rushing_yards_per_attempt", "adjustment_percentage": 0.90}},
+		  {{"team_name": "Denver Broncos", "feature": "avg_pass_adjusted_yards_per_attempt", "adjustment_percentage": 0.93}},
+		  ...
+		]
+		
+		CRITICAL:
+		- You MUST pass adjustments for all teams in the injury report before you are finished
+		- You should pass all adjustments for all teams in a single array
+		- Having several adjustment objects per team is NORMAL
+		- Return the complete list before stopping
+		- Do NOT summarize or simplify
+		
+		When you are done and only after the tool has been called for all adjustments, respond with 'injury report complete'"""
+			
+	def __get_initial_prompt(self):
+		"""Initial user message to start the agent"""
+		print(self.injury_report)
+		return f"""Here is the detailed injury report, analyze and make adjustments:
+		
+		{ self.injury_report }"""
+		
+	def __get_tool_definition(self):
+		"""Tool definition for Ollama"""
+		return [
+		{
+			'type': 'function',
+			'function': {
+				'name': 'adjust_data_aggregates',
+				'description': 'Creates and returns an adjusted set of data aggregates for generating predictions from the models based on the details passed into the adjustments parameter',
+				'parameters': {
+					'type': 'object',
+					'properties': {
+						'adjustments': {
+							'type': 'array',
+							'description': """A list of objects that provide details on how to adjust the data aggregates. Each object MUST follow this format:
+								{
+									'team_name': str, // the name of the team that should be adjusted
+									'feature': str, // the name of the feature that should be adjusted
+									'adjustment_percentage': float // the amount that the value should be adjusted
+								}
+							"""
+						}
+					}
+				},
+				'required': ['adjustments']
+			}
+		},			
+		{
+			'type': 'function',
+			'function': {
+				'name': 'generate_html_report',
+				'description': 'Saves a string of HTML to a file.',
+				'parameters': {
+					'type': 'object',
+					'properties': {
+						'html': {
+							'type': 'array',
+							'description': "Raw HTML to be saved to a file."
+						}
+					}
+				},
+				'required': ['adjustments']
+			}			
+		}]
+	
+	def __execute_tool(self, tool_call):
+		"""Execute the tool function"""
+		function_name = tool_call['function']['name']
+		arguments = tool_call['function']['arguments']
+		
+		if function_name == 'adjust_data_aggregates':
+			normalized_adjustments = []
+			lu = Lookup()
+			for adj in arguments['adjustments']:
+				team_abbr = lu.injury_report_to_pfr(adj['team_name'])
+				normalized_adjustments.append({ 'team_name': team_abbr, 'feature': adj['feature'], 'adjustment_percentage': adj['adjustment_percentage'] })
+			try:
+				result = adjust_data_aggregates(
+					adjustments = normalized_adjustments,
+					da = self.aggregates
+				)
+				self.aggregates = result
+			except Exception as e:
+				return {
+					'error': str(e)
+				}
+		
+		elif function_name == 'generate_html_report':
+			return generate_html_report(arguments['html'])
