@@ -127,3 +127,43 @@ class Lookup:
 			raise ValueError(f"Team '{team_name}' not found in lookup dictionary")
 		
 		return team_lookup_dict[team_name]
+	
+	def injury_report_to_pfr(self, team_name):
+		team_lookup_dict = {
+			'ARI': 'crd',  # Arizona Cardinals
+			'ATL': 'atl',  # Atlanta Falcons
+			'BAL': 'rav',  # Baltimore Ravens
+			'BUF': 'buf',  # Buffalo Bills
+			'CAR': 'car',  # Carolina Panthers
+			'CHI': 'chi',  # Chicago Bears
+			'CLE': 'cle',  # Cleveland Browns
+			'DAL': 'dal',  # Dallas Cowboys
+			'DEN': 'den',  # Denver Broncos
+			'DET': 'det',  # Detroit Lions
+			'GB': 'gnb',   # Green Bay Packers
+			'HOU': 'htx',  # Houston Texans
+			'IND': 'clt',  # Indianapolis Colts
+			'JAX': 'jax',  # Jacksonville Jaguars
+			'KC': 'kan',   # Kansas City Chiefs
+			'LAC': 'sdg',  # Los Angeles Chargers
+			'LAR': 'ram',  # Los Angeles Rams
+			'LV': 'rai',   # Las Vegas Raiders
+			'MIA': 'mia',  # Miami Dolphins
+			'MIN': 'min',  # Minnesota Vikings
+			'NE': 'nwe',   # New England Patriots
+			'NO': 'nor',   # New Orleans Saints
+			'NYG': 'nyg',  # New York Giants
+			'NYJ': 'nyj',  # New York Jets
+			'PHI': 'phi',  # Philadelphia Eagles
+			'PIT': 'pit',  # Pittsburgh Steelers
+			'SF': 'sfo',   # San Francisco 49ers
+			'SEA': 'sea',  # Seattle Seahawks
+			'TB': 'tam',   # Tampa Bay Buccaneers
+			'TEN': 'oti',  # Tennessee Titans (not in your data but included for completeness)
+			'WSH': 'was',  # Washington Commanders
+		}
+		
+		if team_name not in team_lookup_dict:
+			raise ValueError(f"Team '{team_name}' not found in lookup dictionary")
+		
+		return team_lookup_dict[team_name]

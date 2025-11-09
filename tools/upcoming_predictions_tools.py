@@ -46,8 +46,10 @@ def get_upcoming_predictions(adjusted_aggregates = None) -> dict:
 		feature_optimization_results = json.load(f)
 	
 	if(adjusted_aggregates):
+		print(f"Running predictions with adjusted aggregates")
 		da = adjusted_aggregates
 	else:
+		print(f"Loading data aggregates")
 		da = DataAggregate(config.odds_api_key)
 	
 	start_time = time.time()
