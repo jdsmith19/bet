@@ -100,7 +100,8 @@ class PredictionAgent:
 				
 			CRITICAL TOOL USAGE:
 			- Call tools using the native function calling mechanism provided by the chat API
-			- DO NOT pass adjusted_aggregates to the get_upcoming_predictions tool yet, tht is a tool feature that is not yet complete
+			- DO NOT pass adjusted_aggregates to the get_upcoming_predictions tool yet, that is a tool feature that is not yet complete
+				- IF you pass anything, just pass None
 			- DO NOT write JSON in your text response like: {{"name": "train_and_evaluate_model", ...}}
 			- DO NOT use code blocks: ```json ... ```
 			- The tool calling happens automatically when you use the proper mechanism
