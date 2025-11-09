@@ -15,15 +15,17 @@ def get_injury_report_for_teams(teams: list) -> dict:
 	Returns:
 		List[string]: A list of detailed injury reports for the teams provided
 	"""
-	
+	requested_teams = []
 	injury_reports = []
 	dca = NFLDepthChartAnalyzer()
 	lu = Lookup()
 	for team in teams:
+		requested_teams.append(team)
 		print(f"Generating detailed injury report for { lu.team_name_to_espn_code(team) }")
-		try:
-			injury_reports.append(dca.get_llm_prompt_context(lu.team_name_to_espn_code(team)))
-		except Exception as e:
-			return traceback.print_exc()
+		if(team not in requested_teams):
+			try:
+				injury_reports.append(dca.get_llm_prompt_context(lu.team_name_to_espn_code(team)))
+			except Exception as e:
+				return traceback.print_exc()
 	return injury_reports
 	
