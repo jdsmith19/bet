@@ -66,7 +66,7 @@ class PredictionAgent:
 				print(f"\n{'='*80}\n")
 				print(f"Agent: { response['message']['content'] }")
 							
-				if 'analysis complete' in msg.lower():
+				if 'analysis complete' in msg.content.lower():
 					return True
 						
 			print(f"{'='*80}\n")
@@ -79,16 +79,13 @@ class PredictionAgent:
 			Given the information available to you, predict the winners of upcoming NFL games.
 												
 			YOUR STRATEGY:
-			Access whatever data and tools you have and analyze the likelihood of the winner for each game. For each game, provide the analysis in the following JSON format:
+			Access whatever data and tools you have and analyze the likelihood of the winner for each game. Begin the response with your analysis with the "ANALYSIS COMPLETE". For each game, provide the analysis in the following format:
 			
-			{{
-				'predicted_winner': str, // the name of the team you predict to win the game
-				'predicted_spread': float, // the number of points you anticipate the winning team will win by
-				'confidence': str, // use one of the following values: VERY LOW, LOW, MEDIUM, HIGH, and VERY HIGH
-				'analysis': list[str] // a list of the reasons you have made this prediction
-			}}
-			
-			Begin the response wiith your analysis with the "ANALYSIS COMPLETE"
+			MATCHUP: The name of the game using the format of "away_team @ home_team"
+			PREDICTED WINNER: Te name of the team you predict to win the game
+			PREDICTED SPREAD: The number of points you anticipate the winning team will win by
+			CONFIDENCE Use one of the following values: VERY LOW, LOW, MEDIUM, HIGH, and VERY HIGH
+			ANALYSIS: The reasons you have made this prediction
 			
 			METHOD:
 			- Once you have all of the model predictions, be sure to assess the injury reports for each team to determine if they will have a material impact on the matchup.
@@ -184,4 +181,12 @@ class PredictionAgent:
 					'team': arguments.get('team')
 				}
 				
-		
+# YOUR STRATEGY:
+# Access whatever data and tools you have and analyze the likelihood of the winner for each game. For each game, provide the analysis in the following JSON format:
+# 
+# {{
+	# 'predicted_winner': str, // the name of the team you predict to win the game
+	# 'predicted_spread': float, // the number of points you anticipate the winning team will win by
+	# 'confidence': str, // use one of the following values: VERY LOW, LOW, MEDIUM, HIGH, and VERY HIGH
+	# 'analysis': list[str] // a list of the reasons you have made this prediction
+# }}
