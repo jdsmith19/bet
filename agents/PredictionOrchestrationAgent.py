@@ -309,7 +309,7 @@ class PredictionOrchestrationAgent:
 				#print(result)
 				self.injury_report = result
 				lu = Lookup()
-				for ir in injury_report:
+				for ir in self.injury_report:
 					team_name = lu.injury_report_to_team_name(ir)
 					for matchup in self.matchup_details:
 						if team_name in matchup:
