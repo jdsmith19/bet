@@ -307,9 +307,9 @@ class PredictionOrchestrationAgent:
 				analysis = []
 				for matchup in self.matchup_details:
 					gaa = GameAnalysisAgent(self.matchup_details[matchup])
-					print(gaa)
 					try:
 						self.analysis.append(gaa.run())
+						print(self.analysis)
 						return "Analysis complete"
 					except Exception as e:
 						return {

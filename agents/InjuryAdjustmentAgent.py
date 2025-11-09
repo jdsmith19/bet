@@ -127,6 +127,23 @@ class InjuryAdjustmentAgent:
 		- Return the complete list before stopping
 		- Do NOT summarize or simplify
 		
+		After analyzing all injuries, you MUST call the adjust_data_aggregates tool.
+		Do NOT just list the adjustments in your reasoning.
+		Do NOT say "Now call tool" without actually calling it.
+		
+		The ONLY acceptable final action is calling adjust_data_aggregates with your adjustment list.
+		
+		Example of CORRECT behavior:
+		[Agent analyzes injuries and determines adjustments]
+		[Agent CALLS adjust_data_aggregates tool with the adjustment list]
+		
+		Example of INCORRECT behavior:
+		[Agent analyzes injuries]
+		[Agent says "Now call tool" but doesn't actually call it]
+		[Agent just returns without calling the tool]
+		
+		YOU HAVE FAILED THE TASK IF YOU DO NOT CALL THE TOOL.
+		
 		When you are done and only after the tool has been called for all adjustments, respond with 'injury report complete'"""
 			
 	def __get_initial_prompt(self):
