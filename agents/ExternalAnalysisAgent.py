@@ -2,18 +2,20 @@ import config
 import json
 import ollama
 import config
+import requests
+import xmltodict
 from helpers.Lookup import Lookup
 from tools.adjust_aggregates_tools import adjust_data_aggregates
 from DataAggregate.DataAggregate import DataAggregate
 
-class GameAnalysisAgent:
-	def __init__(self, game_details):
-		self.game_details = game_details
+class ExternalAnalysisAgent:
+	def __init__(self, games):
+		self.games = game_details
 		self.analysis = None
 	
 	def run(self):
 		"""Main agent loop"""
-		print(f"🏈 Starting Game Analysis Agent")
+		print(f"🛜 External Analysis Agent")
 		
 		finished = False
 		
@@ -42,7 +44,7 @@ class GameAnalysisAgent:
 				empty_responses += 1
 			
 			print(f"\n{'='*80}")
-			print(f"🏈 Game Analysis Agent Response")
+			print(f"🛜 External Analysis Agent Response")
 			print(f"{'='*80}\n")
 			
 			# Show the thinking (chain-of-thought)
@@ -72,8 +74,8 @@ class GameAnalysisAgent:
 				print(f"\n{'='*80}\n")
 				print(f"Agent: { response['message']['content'] }")
 							
-				if 'game analysis complete' in msg.content.lower():
-					print(f"🏈 Exiting Game Analysis Agent")
+				if 'external analysis complete' in msg.content.lower():
+					print(f"🛜 Exiting External Analysis Agent")
 					finished = True
 					return self.analysis
 						
@@ -82,41 +84,40 @@ class GameAnalysisAgent:
 	def __get_system_prompt(self):
 		"""System prompt with full context"""
 		
-		return f"""You are an expert NFL analyst that uses an exhaustive data set to predict upcoming NFL games.
+		return f"""You are a research agent that is responsible for gathering expert NFL analysis for upcoming games from the web and summrizing them with key details.
 		
 		INPUT: 
-		- A detailed set of data for an upcoming NFL game. These details can include:
-			- Prediction Data: Data from multiple machine learning models that predict the outcome of games. Some models will also include the predicted point spread.
-			- Injury Adjusted Prediction Data: Data from multiple machine learning models that predict the outcome of games where the prediction is calculated based on baseline data adjusted from injury reports.
-			- Injury Report: A detailed injury report for the team
+		- A list of NFL matchups that need expert NFL analysis
 		
 		OUTPUT:
-		- An object containing some of the details passed to you along with your analysis and final prediction based on all available information
+		- An object containing a summary of the analysis for each matchup
 		
 		TASK:
-		- Generate an analysis report for the upcoming game. Think deeply about the impacts of all the data available to you to make your final prediction.
-		- Pass your analysis in the OUTPUT FORMAT to the save_analysis tool as a string
+		- Get expert analysis from your available tools
+		- Map the analysis from the tool to one of the following games:
+		
+		{ self.games }
+		
+		- Think critically about what factors you think will really affect the outcome of each game.
+		- Summarize the analysis in 3 - 5 key points
+		- Pass your analysis as an object by passing the OUTPUT FORMAT to the save_analysis tool
 
 		OUTPUT FORMAT:		
 		Return ONLY valid JSON, nothing else:
 			{{
-				'matchup': '[Away Team] @ [Home Team]',
-				'base_model_prediction': '[winner] by [spread] pts',
-				'injury_adjusted_prediction': '[winner by spread] pts',
-				'final_prediction': '[your call based on all available information]',
-				'confidence': '[VERY LOW, LOW, MEDIUM, HIGH, or VERY HIGH],
-				'analysis': '[your reasoning for your final prediction, include at least 3 reasons which each reason as an entry of a list]
+				'matchup': '[Away Team] @ [Home Team]' should exactly match the value in the list of games provided to you,
+				'analysis': [{{
+					'source': '[source of the analysis based on the information provided by a tool],
+					'key_points': [a list of 3 - 5 key points as strings]
+				}}]
 			}}
-		
-		Before you call the tool make SURE that you are passing valid characters. DO NOT HALLUCINATE CHARACTERS.
-		
-		After you have successfully called the save_analysis tool, respond with 'game analysis complete'"""
+		After you have successfully called the save_analysis tool, respond with 'external analysis complete'"""
 			
 	def __get_initial_prompt(self):
 		"""Initial user message to start the agent"""
-		return f"""Here are the full game details. Analyze.
+		return f"""Here are the list of games we need details for. Call available tools to get external analysis.
 		
-		{ self.game_details }"""
+		{ self.games }"""
 		
 	def __get_tool_definition(self):
 		"""Tool definition for Ollama"""
@@ -135,6 +136,18 @@ class GameAnalysisAgent:
 					}
 				},
 				'required': ['analysis']
+			},
+			{
+			'type': 'function',
+			'function': {
+				'name': 'sports_chat_palace',
+				'description': 'Fetches expert NFL analysis for upcoming games from Sports Chat Palace',
+				'parameters': {
+					'type': 'object',
+					'properties': {}
+					}
+				},
+				'required': None
 			}
 		}]
 	
@@ -151,6 +164,10 @@ class GameAnalysisAgent:
 				return {
 					'error': str(e)
 				}		
-		
+		elif function_name == 'sports_chat_palace':
+			r = requests.get('https://sportschatplace.com/nfl-picks/feed/')
+			data = xmltodict.parse(r.text)
+			print(data)
+			
 		else:
 			raise ValueError(f"{ function_name }is not a valid tool.")
