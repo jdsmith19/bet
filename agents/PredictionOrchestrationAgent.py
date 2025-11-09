@@ -225,7 +225,7 @@ class PredictionOrchestrationAgent:
 						# }
 					}
 				},
-				'required': [] #['injury_report']
+				'required': None #['injury_report']
 			}
 		},
 		{
@@ -343,6 +343,8 @@ class PredictionOrchestrationAgent:
 				self.adjusted_aggregates = iaa.run()
 				return "Adjustments complete"
 			except Exception as e:
+				import traceback
+				traceback.print_exc()
 				return {
 					'error': str(e)
 				}

@@ -30,7 +30,7 @@ class InjuryAdjustmentAgent:
 				raise ValueError(f"I couldn't complete my task. You must have not passed me the data that I needed. Be sure to send me the full injury report as a text string.")
 			# Get agent's response
 			response = ollama.chat(
-				model = config.model,
+				model = config.adjustment_model,
 				messages = messages,
 				tools = self.__get_tool_definition()
 			)
