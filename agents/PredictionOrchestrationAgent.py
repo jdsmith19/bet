@@ -55,6 +55,7 @@ class PredictionOrchestrationAgent:
 			if msg.get('tool_calls'):
 				# Process tool calls
 				for tool_call in response['message']['tool_calls']:
+					print(f"Agent is calling tool { tool_call['function']['name'] }")
 					result = self.__execute_tool(tool_call)
 					
 					# Add tool result to messages
@@ -227,7 +228,7 @@ class PredictionOrchestrationAgent:
 					'type': 'object',
 					'properties': {}
 				},
-				'required': [] #['injury_report']
+				'required': None #['injury_report']
 			}
 		},		
 		{
@@ -265,7 +266,6 @@ class PredictionOrchestrationAgent:
 				for ml_model in result:
 					for prediction in ml_model['results']:
 						matchup_name = f"{prediction['away_team']} @ { prediction['home_team']}"
-						print(f"Analyzing { matchup_name }")
 						if matchup_name not in self.matchup_details:
 							self.matchup_details[matchup_name] = {}
 						if prediction_type not in self.matchup_details[matchup_name]:
@@ -311,6 +311,7 @@ class PredictionOrchestrationAgent:
 				analysis = []
 				i = 0
 				for matchup in self.matchup_details:
+					print(f"Analyzing { matchup }")
 					i += 1
 					if i >= 4:
 						break
