@@ -107,7 +107,7 @@ class PredictionOrchestrationAgent:
 		
 		STEP 6: GENERATE REPORT
 		- You now have analysis for every game:
-		- Format all game analyses as HTML
+		- Format all game analyses in a single HTML string, do not send a list
 		- Call generate_html_report with the complete HTML string
 		- When it returns True, respond with "ANALYSIS COMPLETE"
 		
@@ -263,6 +263,7 @@ class PredictionOrchestrationAgent:
 				for ml_model in result:
 					for prediction in ml_model['results']:
 						matchup_name = f"{prediction['away_team']} @ { prediction['home_team']}"
+						printf(f"Analyzing { matchup_name }")
 						if matchup_name not in self.matchup_details:
 							self.matchup_details[matchup_name] = {}
 						if prediction_type not in self.matchup_details[matchup_name]:
@@ -306,12 +307,15 @@ class PredictionOrchestrationAgent:
 		elif function_name == 'get_game_analysis':
 				# print(arguments)
 				analysis = []
+				i = 0
 				for matchup in self.matchup_details:
+					i += 1
+					if i >= 4:
+						break
 					gaa = GameAnalysisAgent(self.matchup_details[matchup])
 					try:
 						analysis.append(gaa.run())
-						print(analysis)
-					except Exception as e:
+=					except Exception as e:
 						print(f"Error in get_game_analysis: {e}")
 						import traceback
 						traceback.print_exc()

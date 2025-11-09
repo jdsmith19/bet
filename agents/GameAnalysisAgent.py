@@ -56,9 +56,8 @@ class GameAnalysisAgent:
 
 			if msg.get('tool_calls'):
 				# Process tool calls
-				print("Agent is calling a tool")
-				print(response['message']['tool_calls'])
 				for tool_call in response['message']['tool_calls']:
+					print(f"Agent is calling a tool: { tool_call['function']['name'] }")
 					result = self.__execute_tool(tool_call)
 					
 					# Add tool result to messages
