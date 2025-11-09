@@ -10,7 +10,7 @@ from DataAggregate.DataAggregate import DataAggregate
 
 class ExternalAnalysisAgent:
 	def __init__(self, games):
-		self.games = game_details
+		self.games = games
 		self.analysis = None
 	
 	def run(self):
@@ -122,34 +122,33 @@ class ExternalAnalysisAgent:
 	def __get_tool_definition(self):
 		"""Tool definition for Ollama"""
 		return [{
-			'type': 'function',
-			'function': {
-				'name': 'save_analysis',
-				'description': 'Saves game analysis',
-				'parameters': {
-					'type': 'object',
-					'properties': {
-						'analysis': {
-							'type': 'string',
-							'description': """Complete analysis JSON as string"""
+				'type': 'function',
+				'function': {
+					'name': 'save_analysis',
+					'description': 'Saves game analysis',
+					'parameters': {
+						'type': 'object',
+						'properties': {
+							'analysis': {
+								'type': 'string',
+								'description': """Complete analysis JSON as string"""
+							}
 						}
-					}
-				},
-				'required': ['analysis']
+					},
+					'required': ['analysis']
+				}
 			},
 			{
-			'type': 'function',
-			'function': {
-				'name': 'sports_chat_palace',
-				'description': 'Fetches expert NFL analysis for upcoming games from Sports Chat Palace',
-				'parameters': {
-					'type': 'object',
-					'properties': {}
-					}
+				'type': 'function',
+				'function': {
+					'name': 'sports_chat_palace',
+					'description': 'Fetches expert NFL analysis for upcoming games from Sports Chat Palace',
+					'parameters': {
+						'type': 'object',
+						'properties': {}
+					},
 				},
-				'required': None
-			}
-		}]
+			}]
 	
 	def __execute_tool(self, tool_call):
 		"""Execute the tool function"""
@@ -157,6 +156,7 @@ class ExternalAnalysisAgent:
 		arguments = tool_call['function']['arguments']
 		
 		if function_name == 'save_analysis':
+			print(arguments['analysis'])
 			try:
 				self.analysis = json.loads(arguments['analysis'])
 				return "save_analysis tool has been called successfully."
@@ -165,9 +165,23 @@ class ExternalAnalysisAgent:
 					'error': str(e)
 				}		
 		elif function_name == 'sports_chat_palace':
-			r = requests.get('https://sportschatplace.com/nfl-picks/feed/')
-			data = xmltodict.parse(r.text)
-			print(data)
+			try:
+				headers = {
+					'User-Agent': 'curl/7.68.0'  # Pretend to be curl
+				}
+				r = requests.get('https://sportschatplace.com/nfl-picks/feed/', headers=headers)
+				data = xmltodict.parse(r.text)
+			except Exception as e:
+				print(f"Malformed XML: { r.text }")
+				return {
+					'error': str(e)
+				}		
+				
+			relevant_items = []
+			for item in data['rss']['channel']['item']:
+				if 'nfl picks today' in item['title'].lower():
+					relevant_items.append(item['content:encoded'])
+			return json.dumps(relevant_items)
 			
 		else:
 			raise ValueError(f"{ function_name }is not a valid tool.")

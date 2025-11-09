@@ -36,7 +36,7 @@ class PredictionOrchestrationAgent:
 				model = config.model,
 				messages = messages,
 				tools = self.__get_tool_definition(),
-				options={'temperature': 0.1}
+				options={'temperature': 0.5}
 			)
 			
 			msg = response['message']
@@ -108,6 +108,10 @@ class PredictionOrchestrationAgent:
 		- Call get_upcoming_predictions again
 		- Compare with initial predictions
 		- Store both sets of results
+		
+		STEP 5: GET EXTERNAL EXPERT ANALYSIS
+		- Call get_expert_analysis
+		- Store the results
 		
 		STEP 5: GET ANALYSIS
 		- Call the get_game_analysis tool, which will return the data you need for the next step
@@ -226,6 +230,18 @@ class PredictionOrchestrationAgent:
 		{
 			'type': 'function',
 			'function': {
+				'name': 'get_expert_analysis',
+				'description': 'Aggregates and summarizes expert analysis from external sources.',
+				'parameters': {
+					'type': 'object',
+					'properties': {}
+				},
+				'required': None #['injury_report']
+			}
+		},		
+		{
+			'type': 'function',
+			'function': {
 				'name': 'get_game_analysis',
 				'description': 'Generates analysis for games using known data. Returns analysis of all games for generating the report.',
 				'parameters': {
@@ -316,7 +332,12 @@ class PredictionOrchestrationAgent:
 				return {
 					'error': str(e)
 				}
-
+		
+		elif function_name == 'get_expert_analysis':
+			games = []
+			for matchup in self.matchup_details:
+				games.append(matchup)
+				
 		elif function_name == 'get_game_analysis':
 			# TEMPORARILY LIMITING TO 15 GAMES UNTIL I FIX THE WAY UPCOMING GAMES ARE PULLED TO USE CURRENT / UPCOMING WEEK
 			i = 0

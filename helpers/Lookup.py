@@ -117,6 +117,7 @@ class Lookup:
 			'Philadelphia Eagles': 'phi',
 			'Pittsburgh Steelers': 'pit',
 			'San Francisco 49ers': 'sf',
+			'San Francisco 49s': 'sf',
 			'Seattle Seahawks': 'sea',
 			'Tampa Bay Buccaneers': 'tb',
 			'Tennessee Titans': 'ten',
