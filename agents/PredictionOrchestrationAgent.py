@@ -315,7 +315,7 @@ class PredictionOrchestrationAgent:
 					gaa = GameAnalysisAgent(self.matchup_details[matchup])
 					try:
 						analysis.append(gaa.run())
-=					except Exception as e:
+					except Exception as e:
 						print(f"Error in get_game_analysis: {e}")
 						import traceback
 						traceback.print_exc()
