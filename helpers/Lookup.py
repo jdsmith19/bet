@@ -214,7 +214,7 @@ class Lookup:
 			'WSH': 'Washington Commanders'
 		}
 			
-			if team_code not in team_lookup_dict:
-				raise ValueError(f"Team code '{team_code}' not found in lookup dictionary")
-			
-			return team_lookup_dict[team_code]
+		if team_code not in team_lookup_dict:
+			raise ValueError(f"Team code '{team_code}' not found in lookup dictionary")
+		
+		return team_lookup_dict[team_code]
