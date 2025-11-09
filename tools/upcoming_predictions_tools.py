@@ -9,13 +9,12 @@ import json
 import config
 import traceback
 
-def get_upcoming_predictions() -> dict:
+def get_upcoming_predictions(adjusted_aggregates = None) -> dict:
 	"""
 	Gets predictions for upcoming games based on the current best features identified in the current feature_optimization_results.json file.
 	
 	Args:
-		data: aggregates data
-		features: List of feature names to include
+		adjusted_aggregates: An optional adjusted DataAggregates that can be passed to account for injuries or other factors
 	
 	Returns:
 		List[dict]: A list of model prediction results, where each dict contains:
@@ -42,10 +41,14 @@ def get_upcoming_predictions() -> dict:
 					- prediction_text (str): Human-readable prediction (regression models only)
 					- confidence (float): Prediction confidence score (classification models only)
 	"""
+	
 	with open("feature_optimization_results.json", "r") as f:
 		feature_optimization_results = json.load(f)
 	
-	da = DataAggregate(config.odds_api_key)
+	if(adjusted_aggregates):
+		da = adjusted_aggregates
+	else:
+		da = DataAggregate(config.odds_api_key)
 	
 	start_time = time.time()
 	

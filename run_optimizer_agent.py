@@ -1,5 +1,5 @@
 import config
-from FeatureOptimizerAgent import FeatureOptimizerAgent
+from agents.FeatureOptimizerAgent import FeatureOptimizerAgent
 
 agent = FeatureOptimizerAgent(
 	model_name = config.model,

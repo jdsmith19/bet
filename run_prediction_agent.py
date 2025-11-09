@@ -1,4 +1,4 @@
-from tools.upcoming_predictions_tools import get_upcoming_predictions
+from agents.PredictionAgent import PredictionAgent
 
-results = get_upcoming_predictions()
-print(results)
+pa = PredictionAgent()
+pa.run()

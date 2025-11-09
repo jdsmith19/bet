@@ -77,3 +77,53 @@ class Lookup:
 		}
 		
 		return team_lookup_dict[team]
+	
+	def team_name_to_espn_code(self, team_name):
+		"""
+		Map full team names to ESPN team codes for depth chart scraping
+		
+		Args:
+			team_name: Full team name (e.g., 'Buffalo Bills')
+		
+		Returns:
+			ESPN team code (e.g., 'buf')
+		"""
+		team_lookup_dict = {
+			'Arizona Cardinals': 'ari',
+			'Atlanta Falcons': 'atl',
+			'Baltimore Ravens': 'bal',
+			'Buffalo Bills': 'buf',
+			'Carolina Panthers': 'car',
+			'Chicago Bears': 'chi',
+			'Cincinnati Bengals': 'cin',
+			'Cleveland Browns': 'cle',
+			'Dallas Cowboys': 'dal',
+			'Denver Broncos': 'den',
+			'Detroit Lions': 'det',
+			'Green Bay Packers': 'gb',
+			'Houston Texans': 'hou',
+			'Indianapolis Colts': 'ind',
+			'Jacksonville Jaguars': 'jax',
+			'Kansas City Chiefs': 'kc',
+			'Las Vegas Raiders': 'lv',
+			'Los Angeles Chargers': 'lac',
+			'Los Angeles Rams': 'lar',
+			'Miami Dolphins': 'mia',
+			'Minnesota Vikings': 'min',
+			'New England Patriots': 'ne',
+			'New Orleans Saints': 'no',
+			'New York Giants': 'nyg',
+			'New York Jets': 'nyj',
+			'Philadelphia Eagles': 'phi',
+			'Pittsburgh Steelers': 'pit',
+			'San Francisco 49ers': 'sf',
+			'Seattle Seahawks': 'sea',
+			'Tampa Bay Buccaneers': 'tb',
+			'Tennessee Titans': 'ten',
+			'Washington Commanders': 'wsh',
+		}
+		
+		if team_name not in team_lookup_dict:
+			raise ValueError(f"Team '{team_name}' not found in lookup dictionary")
+		
+		return team_lookup_dict[team_name]
