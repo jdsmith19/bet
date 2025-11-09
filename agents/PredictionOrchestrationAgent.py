@@ -263,7 +263,7 @@ class PredictionOrchestrationAgent:
 				for ml_model in result:
 					for prediction in ml_model['results']:
 						matchup_name = f"{prediction['away_team']} @ { prediction['home_team']}"
-						printf(f"Analyzing { matchup_name }")
+						print(f"Analyzing { matchup_name }")
 						if matchup_name not in self.matchup_details:
 							self.matchup_details[matchup_name] = {}
 						if prediction_type not in self.matchup_details[matchup_name]:
