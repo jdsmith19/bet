@@ -2,6 +2,7 @@ import config
 import json
 import ollama
 import config
+import time
 from helpers.Lookup import Lookup
 from tools.upcoming_predictions_tools import get_upcoming_predictions
 from tools.injury_report_tools import get_injury_report_for_teams
@@ -11,6 +12,7 @@ from agents.GameAnalysisAgent import GameAnalysisAgent
 
 class PredictionOrchestrationAgent:
 	def __init__(self):
+		self.start_time = time.time()
 		self.adjusted_aggregates = None
 		self.injury_report = None
 		self.matchup_details = {}
@@ -33,7 +35,8 @@ class PredictionOrchestrationAgent:
 			response = ollama.chat(
 				model = config.model,
 				messages = messages,
-				tools = self.__get_tool_definition()
+				tools = self.__get_tool_definition(),
+				options={'temperature': 0.1}
 			)
 			
 			msg = response['message']
@@ -71,6 +74,7 @@ class PredictionOrchestrationAgent:
 				print(f"Agent: { response['message']['content'] }")
 							
 				if 'analysis complete' in msg.content.lower():
+					print(f"Agent completed in { time.time() - self.start_time }s")
 					finished = True
 						
 			print(f"{'='*80}\n")
@@ -240,7 +244,7 @@ class PredictionOrchestrationAgent:
 					'type': 'object',
 					'properties': {
 						'html': {
-							'type': 'array',
+							'type': 'string',
 							'description': "Raw HTML to be saved to a file."
 						}
 					}
