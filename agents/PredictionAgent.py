@@ -93,6 +93,7 @@ class PredictionAgent:
 		STEP 3: GET INJURY ADJUSTMENTS
 		- Pass the injury report to the get_injury_adjustments tool
 		- Pass the raw text you got from the get_injury_report tool as a string.
+		- Pass the entire injury report, do not truncate.
 				
 		STEP 4: GET INJURY-ADJUSTED PREDICTIONS  
 		- Call get_upcoming_predictions again
@@ -166,7 +167,9 @@ class PredictionAgent:
 				'description': 'Train an NFL prediction model and return the predictions for all known upcoming games',
 				'parameters': {
 					'type': 'object',
-					'properties': {}
+					'properties': {
+						
+					}
 				},
 				'required': None
 			}

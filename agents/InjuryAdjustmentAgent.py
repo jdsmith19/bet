@@ -73,7 +73,8 @@ class InjuryAdjustmentAgent:
 							
 				if 'injury report complete' in msg.content.lower():
 					print(f"Exiting injury adjustment Agent")
-					finished = self.aggregates
+					finished = true
+					return self.aggregates
 						
 			print(f"{'='*80}\n")
 		
@@ -130,7 +131,6 @@ class InjuryAdjustmentAgent:
 			
 	def __get_initial_prompt(self):
 		"""Initial user message to start the agent"""
-		print(self.injury_report)
 		return f"""Here is the detailed injury report, analyze and make adjustments:
 		
 		{ self.injury_report }"""
