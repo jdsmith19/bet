@@ -314,10 +314,13 @@ class PredictionOrchestrationAgent:
 				}
 
 		elif function_name == 'get_game_analysis':
-				# print(arguments)
-				analysis = []
-				for matchup in self.matchup_details:
-					print(f"Analyzing { matchup }")
+			# TEMPORARILY LIMITING TO 15 GAMES UNTIL I FIX THE WAY UPCOMING GAMES ARE PULLED TO USE CURRENT / UPCOMING WEEK
+			i = 0
+			analysis = []
+			for matchup in self.matchup_details:
+				print(f"Analyzing { matchup }")
+				i += 1
+				if i <= 15:
 					matchup_details = {}
 					matchup_details[matchup] = self.matchup_details[matchup]
 					gaa = GameAnalysisAgent(matchup_details)
@@ -328,8 +331,10 @@ class PredictionOrchestrationAgent:
 						import traceback
 						traceback.print_exc()
 						return {"error": str(e)}
-				self.analysis = analysis
-				return analysis
+				else:
+					break
+			self.analysis = analysis
+			return analysis
 		
 		elif function_name == 'generate_html_report':
 			return generate_html_report(arguments['html'])
