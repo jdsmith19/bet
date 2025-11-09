@@ -81,6 +81,8 @@ class PredictionOrchestrationAgent:
 		
 		=== MANDATORY WORKFLOW - NO DEVIATIONS ALLOWED ===
 		
+		CRITICAL: DO NOT USE THE TERM "ANALYSIS COMPLETE" IN YOUR RESPONSE UNLESS YOU HAVE COMPLETED ALL STEPS
+		
 		You MUST complete these steps in exact order. Skipping or reordering steps is task failure.
 		
 		STEP 1: GET INITIAL PREDICTIONS
