@@ -19,8 +19,12 @@ def get_injury_report_for_teams(teams: list) -> dict:
 	injury_reports = []
 	dca = NFLDepthChartAnalyzer()
 	lu = Lookup()
+	i = 0
 	for team in teams:
+		if i >= 3:
+			break
 		if team not in requested_teams:
+			i += 1
 			requested_teams.append(team)
 			print(f"Generating detailed injury report for { team }")
 			try:
