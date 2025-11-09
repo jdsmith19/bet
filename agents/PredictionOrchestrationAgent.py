@@ -9,6 +9,7 @@ from tools.injury_report_tools import get_injury_report_for_teams
 from tools.html_generation_tools import generate_html_report
 from agents.InjuryAdjustmentAgent import InjuryAdjustmentAgent
 from agents.GameAnalysisAgent import GameAnalysisAgent
+from agents.ExternalAnalysisAgent import ExternalAnalysisAgent
 
 class PredictionOrchestrationAgent:
 	def __init__(self):
@@ -36,7 +37,7 @@ class PredictionOrchestrationAgent:
 				model = config.model,
 				messages = messages,
 				tools = self.__get_tool_definition(),
-				options={'temperature': 0.5}
+				# options={'temperature': 0.5}
 			)
 			
 			msg = response['message']
@@ -317,6 +318,8 @@ class PredictionOrchestrationAgent:
 						self.matchup_details[matchup]['detailed_injury_report'].append(ir)
 				return json.dumps(result)
 			except Exception as e:
+				import traceback
+				traceback.print_exc()
 				return {
 					'error': str(e),
 					'team': arguments.get('team')
@@ -337,6 +340,10 @@ class PredictionOrchestrationAgent:
 			games = []
 			for matchup in self.matchup_details:
 				games.append(matchup)
+			eaa = ExternalAnalysisAgent(games)
+			eaa.run()
+			return eaa.analysis
+				
 				
 		elif function_name == 'get_game_analysis':
 			# TEMPORARILY LIMITING TO 15 GAMES UNTIL I FIX THE WAY UPCOMING GAMES ARE PULLED TO USE CURRENT / UPCOMING WEEK

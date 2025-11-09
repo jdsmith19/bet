@@ -89,6 +89,7 @@ class GameAnalysisAgent:
 			- Prediction Data: Data from multiple machine learning models that predict the outcome of games. Some models will also include the predicted point spread.
 			- Injury Adjusted Prediction Data: Data from multiple machine learning models that predict the outcome of games where the prediction is calculated based on baseline data adjusted from injury reports.
 			- Injury Report: A detailed injury report for the team
+			- Expert Analysis: Summaries of expert analysis about the upcoming game. Should be compared against the Machine Learning Model results
 		
 		OUTPUT:
 		- An object containing some of the details passed to you along with your analysis and final prediction based on all available information
