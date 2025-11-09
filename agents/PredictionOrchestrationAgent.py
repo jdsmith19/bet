@@ -310,13 +310,24 @@ class PredictionOrchestrationAgent:
 				self.injury_report = result
 				lu = Lookup()
 				for ir in self.injury_report:
-					team_name = lu.injury_report_to_team_name(ir['team'])
 					for matchup in self.matchup_details:
+						team_name = lu.injury_report_to_team_name(ir['team'])
+						#print(f"Comparing {team_name} to {matchup}")
 						if team_name in matchup:
+							#print("Match found!")
+							#print(self.matchup_details[matchup])
+							#print(self.matchup_details[matchup].keys())
+								
+							# print(self.matchup_details[matchup])
 							if 'detailed_injury_report' not in self.matchup_details[matchup]:
+								#print("Need to create the detailed_injury_report key.")
 								self.matchup_details[matchup]['detailed_injury_report'] = []
-						self.matchup_details[matchup]['detailed_injury_report'].append(ir)
+								#print(self.matchup_details[matchup])
+								#print(self.matchup_details[matchup].keys())
+							self.matchup_details[matchup]['detailed_injury_report'].append(ir)
+				
 				return json.dumps(result)
+			
 			except Exception as e:
 				import traceback
 				traceback.print_exc()
