@@ -220,7 +220,7 @@ class PredictionOrchestrationAgent:
 			'type': 'function',
 			'function': {
 				'name': 'get_game_analysis',
-				'description': 'Accepts known details of a matchup and returns analysis as an object',
+				'description': 'Generates analysis for games using known data. Will let you know when it is done.',
 				'parameters': {
 					'type': 'object',
 					'properties': {}
