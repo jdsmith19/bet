@@ -107,7 +107,9 @@ class GameAnalysisAgent:
 				'confidence': '[VERY LOW, LOW, MEDIUM, HIGH, or VERY HIGH],
 				'analysis': '[your reasoning for your final prediction, include at least 3 reasons which each reason as an entry of a list]
 			}}
-				
+		
+		Before you call the tool make SURE that you are passing valid characters. DO NOT HALLUCINATE CHARACTERS.
+		
 		After you have successfully called the save_analysis tool, respond with 'game analysis complete'"""
 			
 	def __get_initial_prompt(self):

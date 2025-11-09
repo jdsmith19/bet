@@ -96,6 +96,11 @@ class InjuryAdjustmentAgent:
 		4. Add to your output list
 		5. Call the adjust_data_aggregates tool with the list of objects you create. YOU MUST USE THE LIST FORMAT SHOWN IN THE OUTPUT FORMAT SECTION BELOW.
 		
+		COMMON MISTAKES:
+		- Using incorrect team names
+			- INCORRECT: San Francisco 49s
+			- CORRECT: San Francisco 49ers
+			
 		ADJUSTMENT RULES:
 		- QB injuries → reduce avg_pass_adjusted_yards_per_attempt
 		- RB injuries → reduce avg_rushing_yards_per_attempt
@@ -210,7 +215,7 @@ class InjuryAdjustmentAgent:
 					team_abbr = lu.injury_report_to_pfr(adj['team_name'])
 				except:
 					try:
-						team_abbr = lu.injury_report_to_pfr(adj['team_name'])
+						team_abbr = lu.odds_api_team_to_pfr_team(adj['team_name'])
 					except Exception as e:
 						return {
 							'error': str(e)

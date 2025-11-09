@@ -287,7 +287,14 @@ class PredictionOrchestrationAgent:
 				)
 				#print(result)
 				self.injury_report = result
-				print(self.injury_report)
+				lu = Lookup()
+				for ir in injury_report:
+					team_name = lu.injury_report_to_team_name(ir)
+					for matchup in self.matchup_details:
+						if team_name in matchup:
+							if 'detailed_injury_report' not in self.matchup_details[matchup]:
+								self.matchup_details[matchup]['detailed_injury_report'] = []
+						self.matchup_details[matchup]['detailed_injury_report'].append(ir)
 				return json.dumps(result)
 			except Exception as e:
 				return {

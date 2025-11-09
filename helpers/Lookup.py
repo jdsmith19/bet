@@ -136,6 +136,7 @@ class Lookup:
 			'BUF': 'buf',  # Buffalo Bills
 			'CAR': 'car',  # Carolina Panthers
 			'CHI': 'chi',  # Chicago Bears
+			'CIN': 'cin',  # Cincinnati Bengals
 			'CLE': 'cle',  # Cleveland Browns
 			'DAL': 'dal',  # Dallas Cowboys
 			'DEN': 'den',  # Denver Broncos
@@ -167,3 +168,53 @@ class Lookup:
 			raise ValueError(f"Team '{team_name}' not found in lookup dictionary")
 		
 		return team_lookup_dict[team_name]
+
+	def injury_report_to_team_name(self, team_code):
+		"""
+		Map injury report team codes to full team names
+		
+		Args:
+			team_code: Injury report team code (e.g., 'DEN')
+		
+		Returns:
+			Full team name (e.g., 'Denver Broncos')
+		"""
+		team_lookup_dict = {
+			'ARI': 'Arizona Cardinals',
+			'ATL': 'Atlanta Falcons',
+			'BAL': 'Baltimore Ravens',
+			'BUF': 'Buffalo Bills',
+			'CAR': 'Carolina Panthers',
+			'CHI': 'Chicago Bears',
+			'CIN': 'Cincinnati Bengals',
+			'CLE': 'Cleveland Browns',
+			'DAL': 'Dallas Cowboys',
+			'DEN': 'Denver Broncos',
+			'DET': 'Detroit Lions',
+			'GB': 'Green Bay Packers',
+			'HOU': 'Houston Texans',
+			'IND': 'Indianapolis Colts',
+			'JAX': 'Jacksonville Jaguars',
+			'KC': 'Kansas City Chiefs',
+			'LAC': 'Los Angeles Chargers',
+			'LAR': 'Los Angeles Rams',
+			'LV': 'Las Vegas Raiders',
+			'MIA': 'Miami Dolphins',
+			'MIN': 'Minnesota Vikings',
+			'NE': 'New England Patriots',
+			'NO': 'New Orleans Saints',
+			'NYG': 'New York Giants',
+			'NYJ': 'New York Jets',
+			'PHI': 'Philadelphia Eagles',
+			'PIT': 'Pittsburgh Steelers',
+			'SF': 'San Francisco 49ers',
+			'SEA': 'Seattle Seahawks',
+			'TB': 'Tampa Bay Buccaneers',
+			'TEN': 'Tennessee Titans',
+			'WSH': 'Washington Commanders'
+		}
+			
+			if team_code not in team_lookup_dict:
+				raise ValueError(f"Team code '{team_code}' not found in lookup dictionary")
+			
+			return team_lookup_dict[team_code]
