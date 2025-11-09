@@ -38,7 +38,7 @@ class GameAnalysisAgent:
 			msg = response['message']
 			messages.append(response['message'])
 			
-			if not msg.thinking and not msg.content and not msg.tool_call:
+			if not msg.thinking and not msg.content and not msg.tool_calls:
 				empty_responses += 1
 			
 			print(f"\n{'='*80}")
@@ -56,6 +56,8 @@ class GameAnalysisAgent:
 
 			if msg.get('tool_calls'):
 				# Process tool calls
+				print("Agent is calling a tool")
+				print(response['message']['tool_calls'])
 				for tool_call in response['message']['tool_calls']:
 					result = self.__execute_tool(tool_call)
 					
@@ -74,7 +76,7 @@ class GameAnalysisAgent:
 				if 'game analysis complete' in msg.content.lower():
 					print(f"🏈 Exiting Game Analysis Agent")
 					finished = True
-					return self.aggregates
+					return self.analysis
 						
 			print(f"{'='*80}\n")
 		
@@ -104,16 +106,16 @@ class GameAnalysisAgent:
 				'injury_adjusted_prediction': '[winner by spread] pts',
 				'final_prediction': '[your call based on all available information]',
 				'confidence': '[VERY LOW, LOW, MEDIUM, HIGH, or VERY HIGH],
-				'analysis': '[your reasoning for your final prediction, include at least 3 reasons]
+				'analysis': '[your reasoning for your final prediction, include at least 3 reasons which each reason as an entry of a list]
 			}}
 				
-		When you are done and only after you have completed your analysis, respond with 'game analysis complete'"""
+		After you have successfully called the save_analysis tool, respond with 'game analysis complete'"""
 			
 	def __get_initial_prompt(self):
 		"""Initial user message to start the agent"""
-		return f"""Here is the detailed injury report, analyze and make adjustments:
+		return f"""Here are the full game details. Analyze.
 		
-		{ self.injury_report }"""
+		{ self.game_details }"""
 		
 	def __get_tool_definition(self):
 		"""Tool definition for Ollama"""
@@ -121,17 +123,17 @@ class GameAnalysisAgent:
 			'type': 'function',
 			'function': {
 				'name': 'save_analysis',
-				'description': 'Saves your analysis data',
+				'description': 'Saves game analysis',
 				'parameters': {
 					'type': 'object',
 					'properties': {
 						'analysis': {
-							'type': 'str',
-							'description': """A string containing the analysis of the game."""
+							'type': 'string',
+							'description': """Complete analysis JSON as string"""
 						}
 					}
 				},
-				'required': []
+				'required': ['analysis']
 			}
 		}]
 	
@@ -143,6 +145,7 @@ class GameAnalysisAgent:
 		if function_name == 'save_analysis':
 			try:
 				self.analysis = json.loads(arguments['analysis'])
+				return "save_analysis tool has been called successfully."
 			except Exception as e:
 				return {
 					'error': str(e)

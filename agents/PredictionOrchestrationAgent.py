@@ -220,7 +220,7 @@ class PredictionOrchestrationAgent:
 			'type': 'function',
 			'function': {
 				'name': 'get_game_analysis',
-				'description': 'Generates analysis for games using known data. Will let you know when it is done.',
+				'description': 'Generates analysis for games using known data. Returns analysis of all games for generating the report.',
 				'parameters': {
 					'type': 'object',
 					'properties': {}
@@ -284,6 +284,7 @@ class PredictionOrchestrationAgent:
 				)
 				#print(result)
 				self.injury_report = result
+				print(self.injury_report)
 				return json.dumps(result)
 			except Exception as e:
 				return {
@@ -308,14 +309,14 @@ class PredictionOrchestrationAgent:
 				for matchup in self.matchup_details:
 					gaa = GameAnalysisAgent(self.matchup_details[matchup])
 					try:
-						self.analysis.append(gaa.run())
-						print(self.analysis)
-						return "Analysis complete"
+						analysis.append(gaa.run())
+						print(analysis)
 					except Exception as e:
-						return {
-							'error': str(e)
-						}
-				print(analysis)
+						print(f"Error in get_game_analysis: {e}")
+						import traceback
+						traceback.print_exc()
+						return {"error": str(e)}
+				self.analysis = analysis
 				return analysis
 		
 		elif function_name == 'generate_html_report':

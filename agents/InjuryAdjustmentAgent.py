@@ -105,6 +105,7 @@ class InjuryAdjustmentAgent:
 		- DB injuries → reduce avg_pass_adjusted_yards_per_attempt_allowed
 		- Multiple severe injuries → also adjust avg_point_differential
 		- Use the injury Impact Score to determine how much to adjust
+		- Only adjust each feature once for a team
 		
 		SEVERITY GUIDE:
 		- Out/IR + Critical position + Signifidcant Impact Score = 0.85-0.88
@@ -205,7 +206,17 @@ class InjuryAdjustmentAgent:
 			normalized_adjustments = []
 			lu = Lookup()
 			for adj in arguments['adjustments']:
-				team_abbr = lu.injury_report_to_pfr(adj['team_name'])
+				try:
+					team_abbr = lu.injury_report_to_pfr(adj['team_name'])
+				except:
+					try:
+						team_abbr = lu.injury_report_to_pfr(adj['team_name'])
+					except Exception as e:
+						return {
+							'error': str(e)
+						}
+
+						
 				normalized_adjustments.append({ 'team_name': team_abbr, 'feature': adj['feature'], 'adjustment_percentage': adj['adjustment_percentage'] })
 			try:
 				result = adjust_data_aggregates(
