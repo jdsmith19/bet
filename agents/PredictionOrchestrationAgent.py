@@ -309,13 +309,11 @@ class PredictionOrchestrationAgent:
 		elif function_name == 'get_game_analysis':
 				# print(arguments)
 				analysis = []
-				i = 0
 				for matchup in self.matchup_details:
 					print(f"Analyzing { matchup }")
-					i += 1
-					if i >= 4:
-						break
-					gaa = GameAnalysisAgent(self.matchup_details[matchup])
+					matchup_details = {}
+					matchup_details[matchup] = self.matchup_details[matchup]
+					gaa = GameAnalysisAgent(matchup_details)
 					try:
 						analysis.append(gaa.run())
 					except Exception as e:
