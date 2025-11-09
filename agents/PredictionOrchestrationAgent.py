@@ -310,7 +310,7 @@ class PredictionOrchestrationAgent:
 				self.injury_report = result
 				lu = Lookup()
 				for ir in self.injury_report:
-					team_name = lu.injury_report_to_team_name(ir)
+					team_name = lu.injury_report_to_team_name(ir['team'])
 					for matchup in self.matchup_details:
 						if team_name in matchup:
 							if 'detailed_injury_report' not in self.matchup_details[matchup]:
