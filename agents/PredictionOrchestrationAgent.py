@@ -7,15 +7,18 @@ from tools.upcoming_predictions_tools import get_upcoming_predictions
 from tools.injury_report_tools import get_injury_report_for_teams
 from tools.html_generation_tools import generate_html_report
 from agents.InjuryAdjustmentAgent import InjuryAdjustmentAgent
+from agents.GameAnalysisAgent import GameAnalysisAgent
 
-class PredictionAgent:
+class PredictionOrchestrationAgent:
 	def __init__(self):
 		self.adjusted_aggregates = None
 		self.injury_report = None
+		self.matchup_details = {}
+		self.analysis = {}
 	
 	def run(self):
 		"""Main agent loop"""
-		print(f"🚀 Starting Prediction Agent")
+		print(f"🎹 Starting Prediction Orchestration Agent")
 		print(f"MODEL: { config.orchestration_model }")		
 		finished = False
 		
@@ -37,7 +40,7 @@ class PredictionAgent:
 			messages.append(response['message'])
 			
 			print(f"\n{'='*80}")
-			print(f"🔮 Prediction Agent Response")
+			print(f"🎹 Prediction Orchestration Agent Response")
 			print(f"{'='*80}\n")
 			
 			# Show the thinking (chain-of-thought)
@@ -99,11 +102,11 @@ class PredictionAgent:
 		- Compare with initial predictions
 		- Store both sets of results
 		
-		STEP 5: GENERATE REPORT
-		- You now have two sets of predictions:
-		  * Initial predictions (from Step 1)
-		  * Injury-adjusted predictions (from Step 4)
-		- For each game, create analysis comparing these two prediction sets
+		STEP 5: GET ANALYSIS
+		- Call the get_game_analysis tool, which will return the data you need for the next step
+		
+		STEP 6: GENERATE REPORT
+		- You now have analysis for every game:
 		- Format all game analyses as HTML
 		- Call generate_html_report with the complete HTML string
 		- When it returns True, respond with "ANALYSIS COMPLETE"
@@ -200,7 +203,7 @@ class PredictionAgent:
 			'type': 'function',
 			'function': {
 				'name': 'get_injury_adjustments',
-				'description': 'Creates and returns an adjusted set of data aggregates for generating predictions from the models based on the injury report',
+				'description': 'Updates data aggregates for generating predictions from the models based on the injury report and will let you know when complete',
 				'parameters': {
 					'type': 'object',
 					'properties': {
@@ -216,6 +219,18 @@ class PredictionAgent:
 		{
 			'type': 'function',
 			'function': {
+				'name': 'get_game_analysis',
+				'description': 'Accepts known details of a matchup and returns analysis as an object',
+				'parameters': {
+					'type': 'object',
+					'properties': {}
+				},
+				'required': [] #['injury_report']
+			}
+		},		
+		{
+			'type': 'function',
+			'function': {
 				'name': 'generate_html_report',
 				'description': 'Saves a string of HTML to a file.',
 				'parameters': {
@@ -227,7 +242,7 @@ class PredictionAgent:
 						}
 					}
 				},
-				'required': ['adjustments']
+				'required': ['html']
 			}			
 		}]
 	
@@ -237,13 +252,27 @@ class PredictionAgent:
 		arguments = tool_call['function']['arguments']
 		
 		if function_name == 'get_upcoming_predictions':
+			if self.adjusted_aggregates:
+				prediction_type = 'injury_adjusted_predictions'
+			else:
+				prediction_type = 'base_predictions'
 			try:
 				result = get_upcoming_predictions(
 					adjusted_aggregates = self.adjusted_aggregates
 				)
+				for ml_model in result:
+					for prediction in ml_model['results']:
+						matchup_name = f"{prediction['away_team']} @ { prediction['home_team']}"
+						if matchup_name not in self.matchup_details:
+							self.matchup_details[matchup_name] = {}
+						if prediction_type not in self.matchup_details[matchup_name]:
+							self.matchup_details[matchup_name][prediction_type] = []
+						self.matchup_details[matchup_name][prediction_type].append(self.__organize_prediction_details(ml_model, prediction))
 				return result
 				
 			except Exception as e:
+				import traceback
+				traceback.print_exc()
 				return {
 					'error': str(e)
 				}
@@ -272,13 +301,50 @@ class PredictionAgent:
 				return {
 					'error': str(e)
 				}
+
+		elif function_name == 'get_game_analysis':
+				# print(arguments)
+				analysis = []
+				for matchup in self.matchup_details:
+					gaa = GameAnalysisAgent(self.matchup_details[matchup])
+					print(gaa)
+					try:
+						self.analysis.append(gaa.run())
+						return "Analysis complete"
+					except Exception as e:
+						return {
+							'error': str(e)
+						}
+				print(analysis)
+				return analysis
 		
 		elif function_name == 'generate_html_report':
 			return generate_html_report(arguments['html'])
 		
 		else:
 			raise ValueError(f"{ function_name }is not a valid tool.")
-				
+	
+	def __organize_prediction_details(self, ml_model, prediction):
+		matchup_details = {
+			'model_details': {
+				'model_name': ml_model['model_name'],
+				'mean_absolute_error': ml_model.get('mean_absolute_error'),
+				'root_mean_squared_error': ml_model.get('root_mean_squared_error'),
+				'feature_importance': ml_model.get('feature_importance'),
+				'feature_coefficients': ml_model.get('feature_coefficients'),
+				'train_accuracy': ml_model.get('train_accuracy'),
+				'test_accuracy': ml_model.get('test_accuracy'),
+				'confidence_intervals': ml_model.get('confidence_intervals')
+			},
+			'prediction': {
+				'predicted_spread': prediction.get('predicted_spread'),
+				'predicted_winner': prediction['predicted_winner'],
+				'prediction_text': prediction.get('prediction_text'),
+				'confidence': prediction.get('confidence')
+			}
+		}
+		return matchup_details
+
 # YOUR STRATEGY:
 # Access whatever data and tools you have and analyze the likelihood of the winner for each game. For each game, provide the analysis in the following JSON format:
 # 

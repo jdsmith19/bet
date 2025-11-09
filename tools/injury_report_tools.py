@@ -21,7 +21,7 @@ def get_injury_report_for_teams(teams: list) -> dict:
 	lu = Lookup()
 	i = 0
 	for team in teams:
-		if i >= 3:
+		if i >= 4:
 			break
 		if team not in requested_teams:
 			i += 1
