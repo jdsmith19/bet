@@ -357,10 +357,10 @@ class PredictionOrchestrationAgent:
 			eaa.run()
 			for a in eaa.analysis:
 				matchup = a['matchup']
-				if a in self.matchup_details:
-					if 'expert_analysis' not in self.matchup_details[a]:
-						self.matchup_details[a]['expert_analysis'] = []
-					self.matchup_details[a]['expert'].append(eaa.analysis[matchup])
+				if matchup in self.matchup_details:
+					if 'expert_analysis' not in self.matchup_details[matchup]:
+						self.matchup_details[matchup]['expert_analysis'] = []
+					self.matchup_details[matchup]['expert_analysis'].append(a['analysis'])
 			return eaa.analysis
 				
 				
