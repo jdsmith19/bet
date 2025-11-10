@@ -209,7 +209,6 @@ class ExternalAnalysisAgent:
 		arguments = tool_call['function']['arguments']
 		
 		if function_name == 'save_analysis':
-			print(arguments['analysis'])
 			try:
 				self.analysis = json.loads(arguments['analysis'])
 				return "save_analysis tool has been called successfully."
