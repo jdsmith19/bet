@@ -4,8 +4,8 @@ import ollama
 from tools.feature_refinement_tools import train_and_evaluate_model
 
 class FeatureOptimizerAgent:
-	def __init__(self, model_name=config.model, max_experiments=300):
-		self.model_name = model_name
+	def __init__(self, model_name=config.optimization_model, max_experiments=300):
+		self.optimization_model_name = model_name
 		self.max_experiments = max_experiments
 		self.experiment_count = 0
 		self.experiment_history = []
