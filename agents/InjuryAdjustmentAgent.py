@@ -36,6 +36,7 @@ class InjuryAdjustmentAgent:
 			)
 			
 			msg = response['message']
+			print(msg)
 			messages.append(response['message'])
 			
 			if not msg.thinking and not msg.content and not msg.get('tool_calls'):
