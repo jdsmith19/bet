@@ -16,7 +16,7 @@ class InjuryAdjustmentAgent:
 	
 	def run(self):
 		"""Main agent loop"""
-		print(f"🚀 Starting Injury Adjustment Agent")
+		print(f"🏭 Starting Injury Adjustment Agent")
 		
 		finished = False
 		
@@ -48,7 +48,7 @@ class InjuryAdjustmentAgent:
 				empty_responses += 1
 			
 			print(f"\n{'='*80}")
-			print(f"🩹 Injury Adjustment Agent Response")
+			print(f"🏭 Injury Adjustment Agent Response")
 			print(f"{'='*80}\n")
 			
 			# Show the thinking (chain-of-thought)
@@ -72,7 +72,7 @@ class InjuryAdjustmentAgent:
 					})
 			elif msg.content:							
 				if 'injury report complete' in msg.content.lower():
-					print(f"Exiting injury adjustment Agent")
+					print(f"🏭 Exiting Injury Adjustment Agent")
 					finished = True
 					return self.aggregates
 						

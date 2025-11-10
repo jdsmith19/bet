@@ -327,6 +327,7 @@ class PredictionOrchestrationAgent:
 			for ir in self.injury_report:
 				iaa = InjuryAdjustmentAgent(json.dumps(ir), self.adjusted_aggregates)
 				try:
+					print(f"Making injury adjustments for { ir['team']}")
 					self.adjusted_aggregates = iaa.run()
 				except Exception as e:
 					import traceback

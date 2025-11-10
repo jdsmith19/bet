@@ -27,3 +27,6 @@ Add rolling aggregates for at least [3,5,7] days
 Add RPI
 Add Home / Away Splits
 Build an agent to test and refine model results across all available features
+Build an agent to predict upcoming games based on multiple factors
+Build an agent to extract expert analysis from external websites
+Split tasks into subagents

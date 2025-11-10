@@ -16,7 +16,7 @@ class FeatureOptimizerAgent:
 	def run(self):
 		"""Main agent loop"""
 		print(f"🚀 Starting Feature Optimization Agent")
-		print(f"Model: { self.model_name }")
+		print(f"Model: { self.optimization_model_name }")
 		print(f"Max Experiments: { self.max_experiments }\n")
 		
 		# Initialize conversation with system prompt
