@@ -68,7 +68,7 @@ class FeatureOptimizerAgent:
 			
 			# Get agent's response
 			response = ollama.chat(
-				model = self.model_name,
+				model = self.optimization_model_name,
 				messages = messages,
 				tools = [self.__get_tool_definition()]
 			)
