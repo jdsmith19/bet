@@ -40,7 +40,7 @@ class ExternalAnalysisAgent:
 			msg = response['message']
 			messages.append(response['message'])
 			
-			if not msg.thinking and not msg.content and not msg.tool_calls:
+			if not msg.get('thinking') and not msg.get('content') and not msg.get('tool_calls'):
 				empty_responses += 1
 			
 			print(f"\n{'='*80}")
@@ -68,8 +68,13 @@ class ExternalAnalysisAgent:
 						'content': json.dumps(result)
 					})
 					
-			elif msg.content:							
-				if 'external analysis complete' in msg.content.lower():
+			elif msg.get('content'):
+				if '[' in msg.content or '{' in msg.content:
+					messages.append({
+						'role': 'user',
+						'content': 'You must CALL the save_analysis tool with that data. Do not just show me the JSON. Actually invoke the save_analysis function.'
+					})
+				elif 'external analysis complete' in msg.content.lower():
 					print(f"🛜 Exiting External Analysis Agent")
 					finished = True
 					return self.analysis
@@ -78,6 +83,39 @@ class ExternalAnalysisAgent:
 		
 	def __get_system_prompt(self):
 		"""System prompt with full context"""
+		return f"""You are a research agent that gathers and summarizes expert NFL analysis.
+		
+		INPUT: A list of NFL matchups
+		
+		OUTPUT: Structured analysis via the save_analysis tool
+		
+		TASK:
+		1. Call sports_chat_palace tool to get expert analysis
+		2. Extract relevant analysis for each matchup in the list
+		3. Summarize each in 3-5 key points
+		4. CALL the save_analysis tool with your complete analysis
+		
+		CRITICAL RULES:
+		- You MUST call save_analysis tool with the complete JSON
+		- DO NOT output the JSON in your explanation
+		- DO NOT just describe what you would pass to the tool
+		- The ONLY way to complete this task is by calling save_analysis
+		
+		MATCHUPS TO ANALYZE:
+		{self.games}
+		
+		OUTPUT FORMAT (pass this to save_analysis tool):
+		[
+		  {{
+			"matchup": "[Away Team] @ [Home Team]",
+			"analysis": [{{
+			  "source": "Sports Chat Place",
+			  "key_points": ["point 1", "point 2", "point 3"]
+			}}]
+		  }}
+		]
+		
+		After successfully calling save_analysis, respond with 'external analysis complete'"""
 		
 		return f"""You are a research agent that is responsible for gathering expert NFL analysis for upcoming games from the web and summrizing them with key details.
 		
