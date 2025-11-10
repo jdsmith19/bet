@@ -389,7 +389,13 @@ class PredictionOrchestrationAgent:
 			return analysis
 		
 		elif function_name == 'generate_html_report':
-			return generate_html_report(arguments['html'])
+			if isinstance(arguments['html'], (list)):
+				html = ''.join(arguments['html'])
+			# If it's a string, parse it
+			elif isinstance(arguments['html'], str):
+				html = arguments['html']
+
+			return generate_html_report(html)
 		
 		else:
 			raise ValueError(f"{ function_name }is not a valid tool.")
