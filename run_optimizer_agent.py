@@ -1,7 +1,7 @@
 import config
-from agents.FeatureOptimizerAgent import FeatureOptimizerAgent
+from agents.OptimizerOrchestrationAgent import OptimizerOrchestrationAgent
 
-agent = FeatureOptimizerAgent(
+agent = OptimizerOrchestrationAgent(
 	model_name = config.model,
 	max_experiments = 500
 )
