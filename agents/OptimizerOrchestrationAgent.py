@@ -64,11 +64,11 @@ class OptimizerOrchestrationAgent:
 			# Show the thinking (chain-of-thought)
 			if msg.get('thinking'):
 				print(f"🧠 REASONING:")
-				print(f"{msg.thinking}\n")
+				print(f"{msg.thinking}")
 				
 			if msg.get('content'):
 				print(f"💬 EXPLANATION:")
-				print(f"{msg.content}\n")
+				print(f"{msg.content}")
 						
 			print(f"{'='*80}\n")
 			
@@ -88,24 +88,25 @@ class OptimizerOrchestrationAgent:
 			
 			# Check if agent wants to use tool
 			if msg.get('tool_calls'):
-				print(f"{'='*80}")
-				print(f"Experiment {self.experiment_count + 1} / {self.max_experiments}")
-				print(f"{'='*80}")
 				# Process tool calls
 				for tool_call in msg['tool_calls']:
-			
 					print(f"Agent is calling tool { tool_call['function']['name'] }")
 					result = self.__execute_tool(tool_call)
-					
+	
+					if tool_call['function']['name'] == 'train_and_evaluate_model':
+						print(f"{'='*80}")
+						print(f"Experiment {self.experiment_count + 1} / {self.max_experiments}")
+						print(f"{'='*80}")
+						self.__update_best_results(result)					
+						self.__print_result_summary(result)
+						
 					# Add tool result to messages
 					messages.append({
 						'role': 'tool',
-						'content': json.dumps(result)
+						'content': result
 					})
 					
 					self.experiment_count += 1
-					self.__update_best_results(result)					
-					self.__print_result_summary(result)
 		
 		self.__save_results()
 		self.__print_final_summary()
@@ -130,6 +131,23 @@ class OptimizerOrchestrationAgent:
 		- Primary metric: test_accuracy - HIGHER IS BETTER
 		- Also look at confidence_intervals for calibration quality
 		
+		IDENTIFYING EXPERIMENTS:
+		- You will receive JSON from the plan_next_experiments tool in the following format:
+		
+		{{
+			'status': 'complete',
+			'experiments': [
+				{{
+					'model': [Which model to execute the experiment against. MUST be one of the AVAILABLE MODELS],
+					'features': [Which features to use in the model training. MUST be one of the AVAILABLE FEATURES],
+					
+				}}
+			]
+		}}
+		
+		- For each object in the 'experiments' array, use the data to call the train_and_evaluate_model tool.
+		- HINT: you can make 10 tool calls in one turn.
+			
 		CRITICAL TOOL USAGE:
 		- Call tools using the native function calling mechanism provided by the chat API
 		- DO NOT write JSON in your text response like: {{"name": "train_and_evaluate_model", ...}}
@@ -155,7 +173,34 @@ class OptimizerOrchestrationAgent:
 				'parameters': {},
 					'required': None
 				}
-			}]
+			},
+			{
+				'type': 'function',
+				'function': {
+					'name': 'train_and_evaluate_model',
+					'description': 'Train an NFL prediction model with specified features and return performance metrics',
+					'parameters': {
+						'type': 'object',
+						'properties': {
+							'model_name': {
+								'type': 'string',
+								'enum': ['XGBoost', 'LinearRegression', 'RandomForest', 'LogisticRegression', 'KNearest'],
+								'description': 'The model type to train'
+							},
+							'features': {
+								'type': 'array',
+								'items': {
+									'type': 'string',
+									'enum': ['days_rest', 'rpi_rating', 'elo_rating', 'avg_points_scored_l3', 'avg_points_scored_l5', 'avg_points_scored_l7', 'avg_pass_adjusted_yards_per_attempt_l3', 'avg_pass_adjusted_yards_per_attempt_l5', 'avg_pass_adjusted_yards_per_attempt_l7', 'avg_rushing_yards_per_attempt_l3', 'avg_rushing_yards_per_attempt_l5', 'avg_rushing_yards_per_attempt_l7', 'avg_turnovers_l3', 'avg_turnovers_l5', 'avg_turnovers_l7', 'avg_penalty_yards_l3', 'avg_penalty_yards_l5', 'avg_penalty_yards_l7', 'avg_sack_yards_lost_l3', 'avg_sack_yards_lost_l5', 'avg_sack_yards_lost_l7', 'avg_points_allowed_l3', 'avg_points_allowed_l5', 'avg_points_allowed_l7', 'avg_pass_adjusted_yards_per_attempt_allowed_l3', 'avg_pass_adjusted_yards_per_attempt_allowed_l5', 'avg_pass_adjusted_yards_per_attempt_allowed_l7', 'avg_rushing_yards_per_attempt_allowed_l3', 'avg_rushing_yards_per_attempt_allowed_l5', 'avg_rushing_yards_per_attempt_allowed_l7', 'avg_turnovers_forced_l3', 'avg_turnovers_forced_l5', 'avg_turnovers_forced_l7', 'avg_sack_yards_gained_l3', 'avg_sack_yards_gained_l5', 'avg_sack_yards_gained_l7', 'avg_point_differential_l3', 'avg_point_differential_l5', 'avg_point_differential_l7']
+								},
+								'description': 'List of feature names to include.'
+							}
+						},
+						'required': ['model_name', 'features']
+					}
+				}
+			}
+		]
 	
 	def __execute_tool(self, tool_call):
 		"""Execute the tool function"""
