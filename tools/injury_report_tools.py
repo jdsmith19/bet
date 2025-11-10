@@ -28,7 +28,7 @@ def get_injury_report_for_teams(teams: list) -> dict:
 			print(f"Generating detailed injury report for { team }")
 			try:
 				injury_reports.append(dca.get_injury_summary_for_agent(lu.team_name_to_espn_code(team)))
-				#i += 1
+				i += 1
 			except Exception as e:
 				return traceback.print_exc()
 	return injury_reports
