@@ -34,9 +34,8 @@ class InjuryAdjustmentAgent:
 				messages = messages,
 				tools = self.__get_tool_definition()
 			)
-			
+			print(response['message'])
 			msg = response['message']
-			print(msg)
 			messages.append(response['message'])
 			
 			if not msg.thinking and not msg.content and not msg.get('tool_calls'):
