@@ -7,9 +7,12 @@ from tools.adjust_aggregates_tools import adjust_data_aggregates
 from DataAggregate.DataAggregate import DataAggregate
 
 class InjuryAdjustmentAgent:
-	def __init__(self, injury_report):
+	def __init__(self, injury_report, current_aggregates = None):
 		self.injury_report = injury_report
-		self.aggregates = DataAggregate(config.odds_api_key)
+		if not current_aggregates:
+			self.aggregates = DataAggregate(config.odds_api_key)
+		else:
+			self.aggregates = current_aggregates
 	
 	def run(self):
 		"""Main agent loop"""
@@ -26,8 +29,12 @@ class InjuryAdjustmentAgent:
 		empty_responses = 0
 		
 		while not finished:
-			if empty_responses >= 3:
-				raise ValueError(f"I couldn't complete my task. You must have not passed me the data that I needed. Be sure to send me the full injury report as a text string.")
+			if empty_responses >= 1:
+				messages.append({
+					'role': 'user',
+					'content': 'You MUST CALL the adjust_data_aggregates tool with data in the OUTPUT FORMAT.'
+				})
+				
 			# Get agent's response
 			response = ollama.chat(
 				model = config.adjustment_model,
