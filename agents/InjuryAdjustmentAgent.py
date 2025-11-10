@@ -34,7 +34,6 @@ class InjuryAdjustmentAgent:
 				messages = messages,
 				tools = self.__get_tool_definition()
 			)
-			print(response['message'])
 			msg = response['message']
 			messages.append(response['message'])
 			
