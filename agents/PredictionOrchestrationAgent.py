@@ -355,6 +355,11 @@ class PredictionOrchestrationAgent:
 				games.append(matchup)
 			eaa = ExternalAnalysisAgent(games)
 			eaa.run()
+			for matchup in eaa.analysis:
+				if matchup in self.matchup_details:
+					if 'expert_analysis' not in self.matchup_details[matchup]:
+						self.matchup_details[matchup]['expert_analysis'] = []
+					self.matchup_details[matchup]['expert'].append(eaa.analysis[matchup])
 			return eaa.analysis
 				
 				

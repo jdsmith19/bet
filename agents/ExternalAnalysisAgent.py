@@ -98,6 +98,7 @@ class ExternalAnalysisAgent:
 		
 		{ self.games }
 		
+		- You may not have external analysis for every game. That's fine, just skip that game if so.
 		- Think critically about what factors you think will really affect the outcome of each game.
 		- Summarize the analysis in 3 - 5 key points
 		- Pass your analysis as an object by passing the OUTPUT FORMAT to the save_analysis tool
