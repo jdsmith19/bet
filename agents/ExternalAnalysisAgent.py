@@ -159,16 +159,35 @@ class ExternalAnalysisAgent:
 				'type': 'function',
 				'function': {
 					'name': 'save_analysis',
-					'description': 'Saves game analysis',
+					'description': 'Saves game analysis as a structured array',
 					'parameters': {
 						'type': 'object',
 						'properties': {
 							'analysis': {
-								'type': 'string',
-								'description': 'Complete analysis JSON as string'
+								'type': 'array',  # Changed from 'string'
+								'items': {
+									'type': 'object',
+									'properties': {
+										'matchup': {'type': 'string'},
+										'analysis': {
+											'type': 'array',
+											'items': {
+												'type': 'object',
+												'properties': {
+													'source': {'type': 'string'},
+													'key_points': {
+														'type': 'array',
+														'items': {'type': 'string'}
+													}
+												}
+											}
+										}
+									}
+								},
+								'description': 'Array of matchup analysis objects'
 							}
 						},
-						'required': ['analysis']  # ✅ Inside parameters
+						'required': ['analysis']
 					}
 				}
 			},
