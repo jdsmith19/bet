@@ -127,11 +127,11 @@ class ExternalAnalysisAgent:
 						'properties': {
 							'analysis': {
 								'type': 'string',
-								'description': """Complete analysis JSON as string"""
+								'description': 'Complete analysis JSON as string'
 							}
-						}
-					},
-					'required': ['analysis']
+						},
+						'required': ['analysis']  # ✅ Inside parameters
+					}
 				}
 			},
 			{
