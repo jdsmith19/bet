@@ -65,13 +65,7 @@ class GameAnalysisAgent:
 						'role': 'tool',
 						'content': json.dumps(result)
 					})
-			elif msg:
-				# Agent is thinking / explaining, not calling a tool
-				print(f"\n{'='*80}")
-				print(f"Agent is thinking...")
-				print(f"\n{'='*80}\n")
-				print(f"Agent: { response['message']['content'] }")
-							
+			elif msg.get('content'):							
 				if 'game analysis complete' in msg.content.lower():
 					print(f"🏈 Exiting Game Analysis Agent")
 					finished = True
