@@ -38,7 +38,7 @@ class InjuryAdjustmentAgent:
 			msg = response['message']
 			messages.append(response['message'])
 			
-			if not msg.thinking and not msg.content and not msg.get('tool_calls'):
+			if not msg.get('thinking') and not msg.get('content') and not msg.get('tool_calls'):
 				empty_responses += 1
 			
 			print(f"\n{'='*80}")
@@ -64,13 +64,7 @@ class InjuryAdjustmentAgent:
 						'role': 'tool',
 						'content': json.dumps(result)
 					})
-			elif msg:
-				# Agent is thinking / explaining, not calling a tool
-				print(f"\n{'='*80}")
-				print(f"Agent is thinking...")
-				print(f"\n{'='*80}\n")
-				print(f"Agent: { response['message']['content'] }")
-							
+			elif msg.content:							
 				if 'injury report complete' in msg.content.lower():
 					print(f"Exiting injury adjustment Agent")
 					finished = True
@@ -167,39 +161,19 @@ class InjuryAdjustmentAgent:
 				'name': 'adjust_data_aggregates',
 				'description': 'Creates and returns an adjusted set of data aggregates for generating predictions from the models based on the details passed into the adjustments parameter',
 				'parameters': {
-					'type': 'object',
-					'properties': {
-						'adjustments': {
-							'type': 'array',
-							'description': """A list of objects that provide details on how to adjust the data aggregates. Each object MUST follow this format:
-								{
-									'team_name': str, // the name of the team that should be adjusted
-									'feature': str, // the name of the feature that should be adjusted
-									'adjustment_percentage': float // the amount that the value should be adjusted
-								}
-							"""
-						}
-					}
-				},
-				'required': ['adjustments']
-			}
-		},			
-		{
-			'type': 'function',
-			'function': {
-				'name': 'generate_html_report',
-				'description': 'Saves a string of HTML to a file.',
-				'parameters': {
-					'type': 'object',
-					'properties': {
-						'html': {
-							'type': 'array',
-							'description': "Raw HTML to be saved to a file."
-						}
-					}
-				},
-				'required': ['adjustments']
-			}			
+					'type': 'array',
+					'items': {
+						'type': 'object',
+						'properties': {
+										'team_name': {'type': 'string'}
+										'feature': {'type': 'string'}
+										'adjustment_percentage': {'type': 'number'}
+						},
+						'required': ['team_name', 'feature', 'adjustment_percentage']
+					},
+					'description': 'A list of adjustment objects for team statistics'
+				}
+			},
 		}]
 	
 	def __execute_tool(self, tool_call):
