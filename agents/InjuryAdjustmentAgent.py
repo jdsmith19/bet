@@ -161,19 +161,25 @@ class InjuryAdjustmentAgent:
 				'name': 'adjust_data_aggregates',
 				'description': 'Creates and returns an adjusted set of data aggregates for generating predictions from the models based on the details passed into the adjustments parameter',
 				'parameters': {
-					'type': 'array',
-					'items': {
-						'type': 'object',
-						'properties': {
-										'team_name': {'type': 'string'}
-										'feature': {'type': 'string'}
-										'adjustment_percentage': {'type': 'number'}
-						},
-						'required': ['team_name', 'feature', 'adjustment_percentage']
+					'type': 'object',  # ✅ Parameters is an OBJECT
+					'properties': {     # ✅ Need properties wrapper
+						'adjustments': { # ✅ The actual parameter name
+							'type': 'array',
+							'items': {
+								'type': 'object',
+								'properties': {
+									'team_name': {'type': 'string'},
+									'feature': {'type': 'string'},
+									'adjustment_percentage': {'type': 'number'}
+								},
+								'required': ['team_name', 'feature', 'adjustment_percentage']
+							},
+							'description': 'A list of adjustment objects for team statistics'
+						}
 					},
-					'description': 'A list of adjustment objects for team statistics'
+					'required': ['adjustments']  # ✅ Moved here
 				}
-			},
+			}
 		}]
 	
 	def __execute_tool(self, tool_call):
