@@ -364,6 +364,7 @@ class PredictionOrchestrationAgent:
 			analysis = []
 			for matchup in self.matchup_details:
 				print(f"Analyzing { matchup }")
+				print(self.matchup_details[matchup])
 				i += 1
 				if i <= 15:
 					matchup_details = {}
