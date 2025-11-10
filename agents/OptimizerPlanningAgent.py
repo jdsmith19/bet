@@ -75,7 +75,7 @@ class OptimizerPlanningAgent:
 					'message': msg
 				})
 			
-			if "'status': 'complete'" in msg['content'].lower():
+			if ("'status': 'complete'" in msg['content'].lower() or '"status": "complete"' in msg['content'].lower()):
 				finished = True
 				print(f"📓 Exiting Optimizer Planning Agent\n")
 				return msg['content']
