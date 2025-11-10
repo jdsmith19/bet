@@ -145,6 +145,18 @@ class ExternalAnalysisAgent:
 					'key_points': [a list of 3 - 5 key points as strings]
 				}}]
 			}}
+			
+		CRITICAL: Ensure your JSON is valid before calling save_analysis.
+		The tool call should be exactly:
+		{
+		  "analysis": [
+			{"matchup": "...", "analysis": [...]},
+			...
+		  ]
+		}
+		
+		Do NOT add extra braces or formatting.
+		
 		After you have successfully called the save_analysis tool, respond with 'external analysis complete'"""
 			
 	def __get_initial_prompt(self):
@@ -209,8 +221,14 @@ class ExternalAnalysisAgent:
 		arguments = tool_call['function']['arguments']
 		
 		if function_name == 'save_analysis':
+			
 			try:
-				self.analysis = json.loads(arguments['analysis'])
+				if isinstance(arguments['analysis'], (list, dict)):
+					self.analysis = arguments['analysis']
+				# If it's a string, parse it
+				elif isinstance(arguments['analysis'], str):
+					self.analysis = json.loads(arguments['analysis'])
+				#self.analysis = json.loads(arguments['analysis'])
 				return "save_analysis tool has been called successfully."
 			except Exception as e:
 				return {
