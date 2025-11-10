@@ -38,7 +38,7 @@ class InjuryAdjustmentAgent:
 			msg = response['message']
 			messages.append(response['message'])
 			
-			if not msg.thinking and not msg.content and not msg.tool_call:
+			if not msg.thinking and not msg.content and not msg.get('tool_calls'):
 				empty_responses += 1
 			
 			print(f"\n{'='*80}")
@@ -92,9 +92,9 @@ class InjuryAdjustmentAgent:
 		TASK:
 		For each team in the injury report:
 		1. Read the injury report
-		3. Create 1-5 adjustment objects per team based on injuries
-		4. Add to your output list
-		5. Call the adjust_data_aggregates tool with the list of objects you create. YOU MUST USE THE LIST FORMAT SHOWN IN THE OUTPUT FORMAT SECTION BELOW.
+		2. Create 1-5 adjustment objects per team based on injuries
+		3. Add to your output list
+		4. Call the adjust_data_aggregates tool with the list of objects you create. YOU MUST USE THE LIST FORMAT SHOWN IN THE OUTPUT FORMAT SECTION BELOW.
 		
 		COMMON MISTAKES:
 		- Using incorrect team names
