@@ -23,7 +23,7 @@ class Features:
 	
 	def __get_extended_features(self):
 		ef = self.base_features
-		for feature in self.extended_features:
+		for feature in self.windowed_features:
 			for interval in [3, 5, 7]:
 				ef.append(f"{ feature }_l{ interval }")
 			for location in ['home', 'away']:
