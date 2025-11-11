@@ -76,15 +76,15 @@ class OptimizerPlanningAgent:
 				})
 			
 			if ("'status': 'complete'" in msg['content'].lower() or '"status": "complete"' in msg['content'].lower()):
-				valid = self.__validate_response(msg['content']
-				if valid:
+				validation = self.__validate_response(msg['content']
+				if validation == True:
 					finished = True
 					print(f"📓 Exiting Optimizer Planning Agent\n")
 					return msg['content']
 				else:
 					messages.append({
 						'role': user,
-						'message': valid
+						'message': validation
 					})
 						
 	def __get_system_prompt(self):
@@ -176,7 +176,7 @@ class OptimizerPlanningAgent:
 								return "Do not include \"team_a\" or \"team_b\" in your feature names. Try again."
 		except Exception as e:
 			return "Your response was not valid JSON. Try again."
-		return True
+		return "True"
 			
 	def __get_phase_instructions(self):
 		if self.phase == 1:
