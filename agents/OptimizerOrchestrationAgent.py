@@ -59,13 +59,14 @@ class OptimizerOrchestrationAgent:
 					try:
 						result = self.__train_and_evaluate_model(e['model'], e['features'])
 						self.experiment_count += 1
+						self.__update_best_results(result)
+						self.__print_result_summary(result)
+
 					except Exception as ex:
 						print(f"Could not execute Experiment # { self.experiment_count + 1 }")
 						print(f"Skipping Experiment")
 						print(f"Error details: { ex }")
 						print(f"Experiment details: { e }")
-					self.__update_best_results(result)
-					self.__print_result_summary(result)
 
 		self.__save_results()
 		self.__print_final_summary()
