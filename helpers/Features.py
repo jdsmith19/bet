@@ -22,7 +22,7 @@ class Features:
 		self.extended_features = self.__get_extended_features()
 	
 	def __get_extended_features(self):
-		ef = self.baase_features
+		ef = self.base_features
 		for feature in self.extended_features:
 			for interval in [3, 5, 7]:
 				ef.append(f"{ feature }_l{ interval }")
