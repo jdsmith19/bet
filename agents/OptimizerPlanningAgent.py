@@ -76,9 +76,16 @@ class OptimizerPlanningAgent:
 				})
 			
 			if ("'status': 'complete'" in msg['content'].lower() or '"status": "complete"' in msg['content'].lower()):
-				finished = True
-				print(f"📓 Exiting Optimizer Planning Agent\n")
-				return msg['content']
+				valid = self.__validate_response(msg['content']
+				if valid:
+					finished = True
+					print(f"📓 Exiting Optimizer Planning Agent\n")
+					return msg['content']
+				else:
+					messages.append({
+						'role': user,
+						'message': valid
+					})
 						
 	def __get_system_prompt(self):
 		"""System prompt with full context"""
@@ -154,7 +161,23 @@ class OptimizerPlanningAgent:
 				}}
 			]
 		}}"""
-		
+	
+	def __validate_response(self, response):
+		try:
+			r = json.loads(response)
+			try:
+				r['status'] == 'complete':
+			except Exception as e:
+				return "Your response did not include \"status\": \"complete\". Try again."
+				try:
+					for experiment in r['experiments']:
+						for feature in experiment['features']:
+							if "team_a" in feature or "team_b" in feature:
+								return "Do not include \"team_a\" or \"team_b\" in your feature names. Try again."
+		except Exception as e:
+			return "Your response was not valid JSON. Try again."
+		return True
+			
 	def __get_phase_instructions(self):
 		if self.phase == 1:
 			return """PHASE 1 INSTRUCTIONS: SEEMINGLY RANDOM
