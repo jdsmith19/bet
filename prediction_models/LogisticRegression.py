@@ -34,8 +34,8 @@ class LogisticRegression(PredictionModel):
 			X_test = scaler.fit_transform(X_test)
 			
 			# Evaluate
-			self.model_output['train_accuracy'] = lg.score(X, y)
-			self.model_output['test_accuracy'] = lg.score(X_test, y_test)
+			self.model_output['train_accuracy'] = round(lg.score(X, y), 4)
+			self.model_output['test_accuracy'] = round(lg.score(X_test, y_test), 4)
 			
 			# Confidence Calibration
 			predictions = lg.predict(X_test)
@@ -46,12 +46,12 @@ class LogisticRegression(PredictionModel):
 			for threshold in [0.6, 0.7, 0.8]:
 				mask = confidence > threshold
 				if mask.sum() > 0:
-					acc = (predictions[mask] == y_test[mask]).mean()
-					pct = 100 * mask.sum() / len(predictions)
+					acc = round((predictions[mask] == y_test[mask]).mean(), 4)
+					pct = round(100 * mask.sum() / len(predictions), 4)
 					self.model_output['confidence_intervals'].append(
 						{ f"confidence_greater_than_{ threshold }": { 
 							"count_predictions": int(mask.sum()),
-							"accuracy": float(acc)
+							"accuracy": round(float(acc), 4)
 						}
 					})
 		return {'model': lg, 'scaler': scaler}

@@ -51,7 +51,7 @@ class KNearest(PredictionModel):
 					self.model_output['confidence_intervals'].append(
 						{ f"confidence_greater_than_{ threshold }": { 
 							"count_predictions": int(mask.sum()),
-							"accuracy": float(acc)
+							"accuracy": round(float(acc), 4)
 						}
 					})
 		return {'model': kn, 'scaler': scaler}

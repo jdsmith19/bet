@@ -73,7 +73,7 @@ def train_and_evaluate_model(model_name: str, features: list[str]) -> dict:
 	
 	try:
 		model_output = evaluate_model_with_features(model_name, features)		
-		model_output['train_time_in_seconds'] = time.time() - start_time
+		model_output['train_time_in_seconds'] = round(time.time() - start_time, 2)
 		model_output['features_used'] = features
 		return model_output
 	

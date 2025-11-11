@@ -1,6 +1,7 @@
 import config
 import json
 import ollama
+from datetime import datetime
 from tools.feature_refinement_tools import train_and_evaluate_model
 from agents.OptimizerPlanningAgent import OptimizerPlanningAgent
 
@@ -18,8 +19,7 @@ class OptimizerOrchestrationAgent:
 	
 	def run(self):
 		"""Main agent loop"""
-		print(f"🚀 Starting Optimizer Optimization Agent")
-		print(f"Model: { self.model }")
+		print(f"🚀 Starting Optimizer Orchestration")
 		print(f"Max Experiments: { self.max_experiments }")
 		
 		# Initialize conversation with system prompt
@@ -38,80 +38,26 @@ class OptimizerOrchestrationAgent:
 			elif self.experiment_count > 400:
 				self.phase = 4
 			
-			# Estimate token count (rough)
-			total_chars = sum(len(str(msg)) for msg in messages)
-			estimated_tokens = total_chars // 4  # Rough estimate: 1 token ≈ 4 chars
-	
-			print(f"\n{'='*80}")
-			print(f"📊 CONTEXT INSPECTION - Experiment { self.experiment_count } / { self.max_experiments }")
-			print(f"Total messages: { len(messages) }")
-			print(f"Estimated tokens: { estimated_tokens }")
-			print(f"{'='*80}")
-									
-			# Get agent's response
-			response = ollama.chat(
-				model = self.model,
-				messages = messages,
-				tools = self.__get_tool_definition()
-			)
-			msg = response['message']
-			
-			print(f"{'='*80}")
-			print(f"🤖 Agent Response")
-			print(f"{'='*80}")
-			
-			# Show the thinking (chain-of-thought)
-			if msg.get('thinking'):
-				print(f"🧠 REASONING:")
-				print(f"{msg.thinking}")
-				
-			if msg.get('content'):
-				print(f"💬 EXPLANATION:")
-				print(f"{msg.content}")
-						
-			print(f"{'='*80}\n")
-			
-			missing_response = (not msg.get('thinking') and not msg.get('content') and not msg.get('tool_calls'))				
-			
-			# Add assistant's message to history
-			if missing_response:
-				intervention_message = f"You appear to be stuck. You need to execute the next experiments. If you don't have any experiments to run, call the plan_next_experiments tool to get more experiments."
-				print(f"👦🏻 USER: { intervention_message }")
-				messages.append({
-					'role': 'user',
-					'content': intervention_message
-				})
-			
+			#print(self.__get_current_results())
+			results = self.__plan_next_experiments()
+			if not results.get("status") == "complete":
+				print("Results not in appropriate format.")
+				continue
 			else:
-				messages.append(msg)
-			
-			# Check if agent wants to use tool
-			if msg.get('tool_calls'):
-				# Process tool calls
-				for tool_call in msg['tool_calls']:
-					
-					print(f"Agent is calling tool { tool_call['function']['name'] }\n")
-					result = self.__execute_tool(tool_call)
-	
-					if tool_call['function']['name'] == 'train_and_evaluate_model':
-						print(f"{'='*80}")
-						print(f"Experiment {self.experiment_count + 1} / {self.max_experiments}")
-						print(f"{'='*80}")
-						self.__update_best_results(result)					
-						self.__print_result_summary(result)
+				for e in results.get('experiments'):
+					print(f"{'='*80}")
+					print(f"Experiment {self.experiment_count + 1} / {self.max_experiments}")
+					print(f"{'='*80}")
+					try:
+						result = self.__train_and_evaluate_model(e['model'], e['features'])
 						self.experiment_count += 1
-						filtered_messages = []
-						for message in messages:
-							if '"status": "complete"' in message.get('content'):
-								filtered_messages.append(message)
-						messages = filtered_messages					
-								
-					# Add tool result to messages
-					messages.append({
-						'role': 'tool',
-						'content': result
-					})
-		
+					except ExperimentError:
+						print(f"Could not execute Experiment # { self.experiment_count + 1 }")
+						print(f"Skipping Experiment")
+						print(f"Experiment details: { e }")
+					self.__update_best_results(result)
+					self.__print_result_summary(result)
+
 		self.__save_results()
 		self.__print_final_summary()
 		
@@ -168,95 +114,31 @@ class OptimizerOrchestrationAgent:
 	def __get_initial_prompt(self):
 		"""Initial user message to start the agent"""
 		return f"""Begin feature optimization by calling the plan_next_experiments tool to get your initial experiments."""
-			
-	def __get_tool_definition(self):
-		"""Tool definition for Ollama"""
-		return [{
-			'type': 'function',
-			'function': {
-				'name': 'plan_next_experiments',
-				'description': 'Plans the next feature optimization experiment based on historical results',
-				'parameters': {},
-					'required': None
-				}
-			},
-			{
-				'type': 'function',
-				'function': {
-					'name': 'train_and_evaluate_model',
-					'description': 'Train an NFL prediction model with specified features and return performance metrics',
-					'parameters': {
-						'type': 'object',
-						'properties': {
-							'model_name': {
-								'type': 'string',
-								'enum': ['XGBoost', 'LinearRegression', 'RandomForest', 'LogisticRegression', 'KNearest'],
-								'description': 'The model type to train'
-							},
-							'features': {
-								'type': 'array',
-								'items': {
-									'type': 'string',
-									'enum': ['days_rest', 'rpi_rating', 'elo_rating', 'avg_points_scored_l3', 'avg_points_scored_l5', 'avg_points_scored_l7', 'avg_pass_adjusted_yards_per_attempt_l3', 'avg_pass_adjusted_yards_per_attempt_l5', 'avg_pass_adjusted_yards_per_attempt_l7', 'avg_rushing_yards_per_attempt_l3', 'avg_rushing_yards_per_attempt_l5', 'avg_rushing_yards_per_attempt_l7', 'avg_turnovers_l3', 'avg_turnovers_l5', 'avg_turnovers_l7', 'avg_penalty_yards_l3', 'avg_penalty_yards_l5', 'avg_penalty_yards_l7', 'avg_sack_yards_lost_l3', 'avg_sack_yards_lost_l5', 'avg_sack_yards_lost_l7', 'avg_points_allowed_l3', 'avg_points_allowed_l5', 'avg_points_allowed_l7', 'avg_pass_adjusted_yards_per_attempt_allowed_l3', 'avg_pass_adjusted_yards_per_attempt_allowed_l5', 'avg_pass_adjusted_yards_per_attempt_allowed_l7', 'avg_rushing_yards_per_attempt_allowed_l3', 'avg_rushing_yards_per_attempt_allowed_l5', 'avg_rushing_yards_per_attempt_allowed_l7', 'avg_turnovers_forced_l3', 'avg_turnovers_forced_l5', 'avg_turnovers_forced_l7', 'avg_sack_yards_gained_l3', 'avg_sack_yards_gained_l5', 'avg_sack_yards_gained_l7', 'avg_point_differential_l3', 'avg_point_differential_l5', 'avg_point_differential_l7']
-								},
-								'description': 'List of feature names to include.'
-							}
-						},
-						'required': ['model_name', 'features']
-					}
-				}
-			}
-		]
 	
-	def __execute_tool(self, tool_call):
-		"""Execute the tool function"""
-		function_name = tool_call['function']['name']
-		arguments = tool_call['function']['arguments']
-		
-		if function_name == 'train_and_evaluate_model':
-			try:
-				result = train_and_evaluate_model(
-					model_name=arguments['model_name'],
-					features=arguments['features']
-				)
-				
-				# Log to history
-				self.experiment_history.append({
-					'experiment_num': self.experiment_count + 1,
-					'arguments': arguments,
-					'result': result
-				})
-				
-				return json.dumps(result)
-				
-			except Exception as e:
-				import traceback
-				traceback.print_exc()
-				return {
-					'error': str(e),
-					'model_name': arguments.get('model_name'),
-					'features': arguments.get('features')
-				}
-		
-		elif function_name == 'plan_next_experiments':
-			try:
-				opa = OptimizerPlanningAgent(self.__get_current_results(), self.phase)
-				response = opa.run()
-				return response
-			except Exception as e:
-				import traceback
-				traceback.print_exc()
-				return {
-					'error': str(e),
-				}
-				
-		return {'error': 'Unknown function'}
+	def __plan_next_experiments(self):
+		opa = OptimizerPlanningAgent(self.__get_current_results(), self.phase)
+		response = opa.run()
+		return json.loads(response)
+	
+	def __train_and_evaluate_model(self, model_name, features):
+			result = train_and_evaluate_model(
+				model_name = model_name,
+				features = features
+			)
+			
+			self.experiment_history.append({
+				'experiment_num': self.experiment_count + 1,
+				'arguments': { 'model_name': model_name, 'features': features },
+				'result': result
+			})
+			
+			return json.dumps(result)
 	
 	def __get_current_results(self):
 		output = {
 			'total_experiments': self.experiment_count,
 			'best_results': self.best_results,
-			'experiment_history': self.experiment_history
+			'experiment_history': self.experiment_history[-50:]
 		}
 		return output
 		
@@ -352,8 +234,8 @@ class OptimizerOrchestrationAgent:
 			'best_results': self.best_results,
 			'experiment_history': self.experiment_history
 		}
-		
-		with open('feature_optimization_results.json', 'w') as f:
+		timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+		with open(f'feature_optimization_results_{ timestamp }.json', 'w') as f:
 			json.dump(output, f, indent=2, default=str)
 		
 		print(f"💾 Results saved to feature_optimization_results.json")

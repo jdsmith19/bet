@@ -33,13 +33,16 @@ class XGBoost(PredictionModel):
 		
 		if(test):
 			predictions = xgb.predict(X_test)
-			self.model_output['mean_absolute_error'] = mean_absolute_error(y_test, predictions)
-			self.model_output['root_mean_squared_error'] = float(np.sqrt(mean_squared_error(y_test, predictions)))
+			self.model_output['mean_absolute_error'] = round(mean_absolute_error(y_test, predictions), 4)
+			self.model_output['root_mean_squared_error'] = round(float(np.sqrt(mean_squared_error(y_test, predictions))), 4)
 			importance = pd.DataFrame({
 				'feature': self.team_specific_feature_columns,
 				'importance': xgb.feature_importances_
 			}).sort_values('importance', ascending=False)
-			self.model_output['feature_importance'] = dict(zip(importance["feature"], importance["importance"]))
+			self.model_output['feature_importance']  = {
+				feature: round(imp, 4)
+				for feature, imp in zip(importance["feature"], importance["importance"])
+			}
 		
 		return xgb
 	

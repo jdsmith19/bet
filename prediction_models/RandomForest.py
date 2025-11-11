@@ -28,8 +28,8 @@ class RandomForest(PredictionModel):
 		
 		if test:
 			predictions = rf.predict(X_test)
-			self.model_output['mean_absolute_error'] = mean_absolute_error(y_test, predictions)
-			self.model_output['root_mean_squared_error'] = float(np.sqrt(mean_squared_error(y_test, predictions)))
+			self.model_output['mean_absolute_error'] = round(mean_absolute_error(y_test, predictions), 4)
+			self.model_output['root_mean_squared_error'] = round(float(np.sqrt(mean_squared_error(y_test, predictions))), 4)
 			importance = pd.DataFrame({
 				'feature': self.team_specific_feature_columns,
 				'importance': rf.feature_importances_

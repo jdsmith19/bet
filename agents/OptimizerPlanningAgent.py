@@ -118,6 +118,8 @@ class OptimizerPlanningAgent:
 				
 		ALL PREVIOUS RESULTS:
 		
+		The following includes the current best results, number of experiments run, and the details of the last 50 experiments.
+		
 		{ self.historical_results }
 		
 		IDEAS:
@@ -143,11 +145,11 @@ class OptimizerPlanningAgent:
 		When you have 10 experiments ready to execute, return the details of the experiments to be run using the following format. ONLY RESPOND WITH JSON IN THIS FORMAT. DO NOT ADD ANY OTHER TEXT. IF YOU ARE THINKING AND NOT RETURNING THE FINAL EXPERIMENT DETAILS, DO NOT INCLUDE 'status': 'complete' IN YOUR RESPONSE.
 		
 		{{
-			'status': 'complete',
-			'experiments': [
+			"status": "complete",
+			"experiments": [
 				{{
-					'model': [Which model to execute the experiment against. MUST be one of the AVAILABLE MODELS],
-					'features': [Which features to use in the model training. MUST be one of the AVAILABLE FEATURES],
+					"model": [Which model to execute the experiment against. MUST be one of the AVAILABLE MODELS],
+					"features": [Which features to use in the model training. MUST be one of the AVAILABLE FEATURES],
 					
 				}}
 			]
