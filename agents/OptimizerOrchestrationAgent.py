@@ -100,7 +100,12 @@ class OptimizerOrchestrationAgent:
 						self.__update_best_results(result)					
 						self.__print_result_summary(result)
 						self.experiment_count += 1
-						
+						filtered_messages = []
+						for message in messages:
+							if '"status": "complete"' in message.get('content'):
+								filtered_messages.append(message)
+						messages = filtered_messages					
+								
 					# Add tool result to messages
 					messages.append({
 						'role': 'tool',

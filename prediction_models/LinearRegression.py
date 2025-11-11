@@ -26,7 +26,7 @@ class LinearRegression(PredictionModel):
 		lr = LinearRegressor()
 		lr.fit(X, y)
 		
-		if(test):
+		if test:
 			predictions = lr.predict(X_test)
 			self.model_output['mean_absolute_error'] = mean_absolute_error(y_test, predictions)
 			self.model_output['root_mean_squared_error'] = float(np.sqrt(mean_squared_error(y_test, predictions)))
@@ -34,7 +34,11 @@ class LinearRegression(PredictionModel):
 				'feature': self.team_specific_feature_columns,
 				'coefficient': lr.coef_
 			}).sort_values('coefficient', ascending=False)
-			self.model_output['feature_coefficients'] = dict(zip(importance["feature"], importance["coefficient"]))
+			self.model_output['feature_coefficients']  = {
+				feature: round(coef, 4)
+				for feature, coef in zip(importance["feature"], importance["coefficient"])
+			}
+			#self.model_output['feature_coefficients'] = dict(zip(importance["feature"], importance["coefficient"]))
 		
 		return lr
 	
