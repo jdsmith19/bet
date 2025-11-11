@@ -32,10 +32,18 @@ class OptimizerOrchestrationAgent:
 		while self.experiment_count < self.max_experiments:	
 			# Set the phase based on the experiment count
 			if self.experiment_count > 100 and self.experiment_count <= 200:
+				print(f"Phase { self.phase } complete")
+				print(f"BEST RESULTS")
+				print(self.__format_all_best_results())
 				self.phase = 2
 			elif self.experiment_count > 200 and self.experiment_count <= 400:
+				print(f"Phase { self.phase } complete")
+				print(f"BEST RESULTS")
+				print(self.__format_all_best_results())
 				self.phase = 3
 			elif self.experiment_count > 400:
+				print(f"Phase { self.phase } complete")
+				print(f"BEST RESULTS")
 				self.phase = 4
 			
 			#print(self.__get_current_results())
