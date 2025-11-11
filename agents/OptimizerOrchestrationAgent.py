@@ -2,6 +2,7 @@ import config
 import json
 import ollama
 from datetime import datetime
+import time
 from tools.feature_refinement_tools import train_and_evaluate_model
 from agents.OptimizerPlanningAgent import OptimizerPlanningAgent
 
@@ -46,8 +47,9 @@ class OptimizerOrchestrationAgent:
 				print(f"BEST RESULTS")
 				self.phase = 4
 			
-			#print(self.__get_current_results())
+			start_time = time.time()
 			results = self.__plan_next_experiments()
+			print(f"Completed experiment planning in { round(time.time() - start_time, 1) }s.")
 			if not results.get("status") == "complete":
 				print("Results not in appropriate format.")
 				continue
