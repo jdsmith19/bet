@@ -22,7 +22,6 @@ class OptimizerOrchestrationAgent:
 		print(f"Model: { self.model }")
 		print(f"Max Experiments: { self.max_experiments }")
 		
-		self.best_results = None
 		# Initialize conversation with system prompt
 		messages = [
 			{ 'role': 'system', 'content': self.__get_system_prompt() },
@@ -44,7 +43,7 @@ class OptimizerOrchestrationAgent:
 			estimated_tokens = total_chars // 4  # Rough estimate: 1 token ≈ 4 chars
 	
 			print(f"\n{'='*80}")
-			print(f"📊 CONTEXT INSPECTION - Experiment {self.experiment_count}")
+			print(f"📊 CONTEXT INSPECTION - Experiment { self.experiment_count } / { self.max_experiments }")
 			print(f"Total messages: { len(messages) }")
 			print(f"Estimated tokens: { estimated_tokens }")
 			print(f"{'='*80}")
@@ -58,7 +57,7 @@ class OptimizerOrchestrationAgent:
 			msg = response['message']
 			
 			print(f"{'='*80}")
-			print(f"🤖 Agent Response (Experiment {self.experiment_count + 1})")
+			print(f"🤖 Agent Response")
 			print(f"{'='*80}")
 			
 			# Show the thinking (chain-of-thought)
@@ -90,7 +89,8 @@ class OptimizerOrchestrationAgent:
 			if msg.get('tool_calls'):
 				# Process tool calls
 				for tool_call in msg['tool_calls']:
-					print(f"Agent is calling tool { tool_call['function']['name'] }")
+					
+					print(f"Agent is calling tool { tool_call['function']['name'] }\n")
 					result = self.__execute_tool(tool_call)
 	
 					if tool_call['function']['name'] == 'train_and_evaluate_model':
@@ -99,14 +99,13 @@ class OptimizerOrchestrationAgent:
 						print(f"{'='*80}")
 						self.__update_best_results(result)					
 						self.__print_result_summary(result)
+						self.experiment_count += 1
 						
 					# Add tool result to messages
 					messages.append({
 						'role': 'tool',
 						'content': result
 					})
-					
-					self.experiment_count += 1
 		
 		self.__save_results()
 		self.__print_final_summary()
@@ -119,7 +118,7 @@ class OptimizerOrchestrationAgent:
 		Complete experiments to identify the best posssible outcome. Utilize the available tools to plan experiments and execute the experiments made available to you through those tools.
 								
 		YOUR STRATEGY:
-		Call the plan_optimization_experiments tool to get a set of experiments to execute.
+		Call the plan_next_experiments tool to get a set of experiments to execute.
 							
 		EXPERIMENT INTERPRETATION:
 		Regression models (XGBoost, LinearRegression, RandomForest):
@@ -146,7 +145,7 @@ class OptimizerOrchestrationAgent:
 		}}
 		
 		- For each object in the 'experiments' array, use the data to call the train_and_evaluate_model tool.
-		- HINT: you can make 10 tool calls in one turn.
+		- HINT: you can make multiple tool calls in one turn.
 			
 		CRITICAL TOOL USAGE:
 		- Call tools using the native function calling mechanism provided by the chat API
@@ -221,7 +220,7 @@ class OptimizerOrchestrationAgent:
 					'result': result
 				})
 				
-				return result
+				return json.dumps(result)
 				
 			except Exception as e:
 				import traceback
@@ -256,6 +255,7 @@ class OptimizerOrchestrationAgent:
 		
 	def __update_best_results(self, result):
 		"""Track best results per model"""
+		result = json.loads(result)
 		model_name = result.get('model_name')
 		if not model_name or 'error' in result:
 			return
@@ -298,6 +298,7 @@ class OptimizerOrchestrationAgent:
 	
 	def __print_result_summary(self, result):
 		"""Print a summary of the experiment result"""
+		result = json.loads(result)
 		print(f"\n📊 RESULT:")
 		print(f"   Model: {result.get('model_name')}")
 		print(f"   Features: {len(result.get('features_used', []))} features")
