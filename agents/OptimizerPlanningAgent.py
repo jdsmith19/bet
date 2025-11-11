@@ -165,17 +165,17 @@ class OptimizerPlanningAgent:
 	def __validate_response(self, response):
 		try:
 			r = json.loads(response)
-			try:
-				r['status'] == 'complete':
-			except Exception as e:
-				return "Your response did not include \"status\": \"complete\". Try again."
-				try:
-					for experiment in r['experiments']:
-						for feature in experiment['features']:
-							if "team_a" in feature or "team_b" in feature:
-								return "Do not include \"team_a\" or \"team_b\" in your feature names. Try again."
 		except Exception as e:
 			return "Your response was not valid JSON. Try again."
+		
+		if r['status'] != 'complete':
+			return "Your response did not include \"status\": \"complete\". Try again."
+		
+		for experiment in r['experiments']:
+			for feature in experiment['features']:
+				if "team_a" in feature or "team_b" in feature:
+					return "Do not include \"team_a\" or \"team_b\" in your feature names. Try again."
+			
 		return "True"
 			
 	def __get_phase_instructions(self):
