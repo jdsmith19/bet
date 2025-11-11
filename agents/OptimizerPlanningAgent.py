@@ -2,6 +2,7 @@ import config
 import json
 import ollama
 from tools.feature_refinement_tools import train_and_evaluate_model
+from helpers.Features import Features
 
 class OptimizerPlanningAgent:
 	def __init__(self, historical_results, phase):
@@ -9,6 +10,8 @@ class OptimizerPlanningAgent:
 		self.max_consecutive_empty_responses = 1
 		self.phase = phase
 		self.historical_results = historical_results
+		f = Features()
+		self.all_features = f.extended_features
 	
 	def run(self):
 		"""Main agent loop"""
@@ -77,7 +80,7 @@ class OptimizerPlanningAgent:
 			
 			if ("'status': 'complete'" in msg['content'].lower() or '"status": "complete"' in msg['content'].lower()):
 				validation = self.__validate_response(msg['content'])
-				if validation == "True":
+				if validation == True:
 					finished = True
 					print(f"📓 Exiting Optimizer Planning Agent\n")
 					return msg['content']
@@ -168,15 +171,16 @@ class OptimizerPlanningAgent:
 		except Exception as e:
 			return "Your response was not valid JSON. Try again."
 		
-		if r['status'] != 'complete':
-			return "Your response did not include \"status\": \"complete\". Try again."
-		
+		invalid_features = []
 		for experiment in r['experiments']:
 			for feature in experiment['features']:
-				if "team_a" in feature or "team_b" in feature:
-					return "Do not include \"team_a\" or \"team_b\" in your feature names. Try again."
-			
-		return "True"
+				if feature not in self.all_features:
+					invalid_features.append(feature)
+		
+		if invalid_features:
+			return f"Your response included the following invalid feature names { invalid_features}. The only valid feature names are { self.all_features }. Try again."
+		
+		return True
 			
 	def __get_phase_instructions(self):
 		if self.phase == 1:

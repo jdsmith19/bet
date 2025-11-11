@@ -278,13 +278,3 @@ class PredictionAgent:
 		
 		else:
 			raise ValueError(f"{ function_name }is not a valid tool.")
-				
-# YOUR STRATEGY:
-# Access whatever data and tools you have and analyze the likelihood of the winner for each game. For each game, provide the analysis in the following JSON format:
-# 
-# {{
-	# 'predicted_winner': str, // the name of the team you predict to win the game
-	# 'predicted_spread': float, // the number of points you anticipate the winning team will win by
-	# 'confidence': str, // use one of the following values: VERY LOW, LOW, MEDIUM, HIGH, and VERY HIGH
-	# 'analysis': list[str] // a list of the reasons you have made this prediction
-# }}
