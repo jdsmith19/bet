@@ -85,6 +85,7 @@ class OptimizerPlanningAgent:
 					print(f"📓 Exiting Optimizer Planning Agent\n")
 					return msg['content']
 				else:
+					print(f"👦🏻 USER: { validation }")
 					messages.append({
 						'role': 'user',
 						'message': validation
