@@ -18,7 +18,7 @@ class OptimizerOrchestrationAgent:
 	
 	def run(self):
 		"""Main agent loop"""
-		print(f"🚀 Starting Feature Optimization Agent")
+		print(f"🚀 Starting Optimizer Optimization Agent")
 		print(f"Model: { self.model }")
 		print(f"Max Experiments: { self.max_experiments }")
 		
@@ -75,7 +75,7 @@ class OptimizerOrchestrationAgent:
 			
 			# Add assistant's message to history
 			if missing_response:
-				intervention_message = f"You appear to be stuck. You need to execute the next experiments. If you don't have any experiments to run, call the plan_optimization_experiments tool to get more experiments."
+				intervention_message = f"You appear to be stuck. You need to execute the next experiments. If you don't have any experiments to run, call the plan_next_experiments tool to get more experiments."
 				print(f"👦🏻 USER: { intervention_message }")
 				messages.append({
 					'role': 'user',
@@ -123,7 +123,9 @@ class OptimizerOrchestrationAgent:
 		Complete experiments to identify the best posssible outcome. Utilize the available tools to plan experiments and execute the experiments made available to you through those tools.
 								
 		YOUR STRATEGY:
-		Call the plan_next_experiments tool to get a set of experiments to execute.
+		- Call the plan_next_experiments tool to get a set of experiments to execute.
+		- Do not provide any analysis on the results of the models. That is the job of the plan_next_experiments tool.
+		- After you have executed all the experiments from plan_next_experiments, call plan_next_experiments again.
 							
 		EXPERIMENT INTERPRETATION:
 		Regression models (XGBoost, LinearRegression, RandomForest):
@@ -151,7 +153,7 @@ class OptimizerOrchestrationAgent:
 		
 		- For each object in the 'experiments' array, use the data to call the train_and_evaluate_model tool.
 		- HINT: you can make multiple tool calls in one turn.
-			
+					
 		CRITICAL TOOL USAGE:
 		- Call tools using the native function calling mechanism provided by the chat API
 		- DO NOT write JSON in your text response like: {{"name": "train_and_evaluate_model", ...}}
@@ -165,7 +167,7 @@ class OptimizerOrchestrationAgent:
 			
 	def __get_initial_prompt(self):
 		"""Initial user message to start the agent"""
-		return f"""Begin feature optimization by calling the plan_optimization_experiments tool to get your initial experiments."""
+		return f"""Begin feature optimization by calling the plan_next_experiments tool to get your initial experiments."""
 			
 	def __get_tool_definition(self):
 		"""Tool definition for Ollama"""
