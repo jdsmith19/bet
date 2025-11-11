@@ -86,7 +86,7 @@ class OptimizerPlanningAgent:
 					return msg['content']
 				else:
 					messages.append({
-						'role': user,
+						'role': 'user',
 						'message': validation
 					})
 						
