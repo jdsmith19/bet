@@ -76,8 +76,8 @@ class OptimizerPlanningAgent:
 				})
 			
 			if ("'status': 'complete'" in msg['content'].lower() or '"status": "complete"' in msg['content'].lower()):
-				validation = self.__validate_response(msg['content']
-				if validation == True:
+				validation = self.__validate_response(msg['content'])
+				if validation == "True":
 					finished = True
 					print(f"📓 Exiting Optimizer Planning Agent\n")
 					return msg['content']
