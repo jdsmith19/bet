@@ -15,8 +15,6 @@ Change how I pull upcoming games
 
 # VERY LARGE
 
-Incorporate injury reports
-
 ## DONE
 Add Logistic Regression
 Add Random Forest Regressor
@@ -30,3 +28,4 @@ Build an agent to test and refine model results across all available features
 Build an agent to predict upcoming games based on multiple factors
 Build an agent to extract expert analysis from external websites
 Split tasks into subagents
+Incorporate injury reports
