@@ -103,7 +103,10 @@ class GameAnalysisAgent:
 				'analysis': '[your reasoning for your final prediction, include at least 3 reasons which each reason as an entry of a list]
 			}}
 		
-		Before you call the tool make SURE that you are passing valid characters. DO NOT HALLUCINATE CHARACTERS.
+		CONFIDENCE:
+		Confidence is defined as how sure you are of your pick for the WINNER of the game. When deciding the value for confidence, take the metrics for the model into account. For regression models consider the mean_squared_error and root_mean_squared_error values. In order for the confidence to be considered VERY HIGH, the spread should be larger than the variance. If the spread is very small and the variance is high, then the confidence should be considered VERY SMALL. For classifier models, you can use the prediction's confidence value should be combined with the test_accuracy to determine your overall confidence.
+		
+		IMPORTANT: Before you call the tool make SURE that you are passing valid characters. DO NOT HALLUCINATE CHARACTERS.
 		
 		After you have successfully called the save_analysis tool, respond with 'game analysis complete'"""
 			
