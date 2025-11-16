@@ -131,7 +131,7 @@ class PredictionOrchestrationAgent:
 		for matchup in self.matchup_details:
 			print(f"Analyzing { matchup }")
 			i += 1
-			if i <= 2:
+			if i <= 15:
 				matchup_details = {}
 				matchup_details[matchup] = self.matchup_details[matchup]
 				gaa = GameAnalysisAgent(matchup_details)
