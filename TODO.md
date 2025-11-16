@@ -10,6 +10,8 @@ Add debug mode that will run with much fewer games to make sure the code complet
 
 Add TQDM, fewer print calls
 
+Create a method for adding to matchup_details to avoid duplicating code
+
 # MEDIUM
 
 Add Guess the Lines with Cousin Sal
