@@ -5,3 +5,4 @@ db/
 *.pyc
 feature_optimization_results.json
 results/
+.env

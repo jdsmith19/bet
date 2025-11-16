@@ -1,6 +1,9 @@
+from dotenv import load_dotenv
+import os
+import time
 import config
 import json
-import ollama
+from openai import OpenAI
 import config
 import requests
 import xmltodict
@@ -8,13 +11,17 @@ from helpers.Lookup import Lookup
 from tools.adjust_aggregates_tools import adjust_data_aggregates
 from DataAggregate.DataAggregate import DataAggregate
 
+load_dotenv()
+
 class ExternalAnalysisAgent:
 	def __init__(self, games):
 		self.games = games
 		self.analysis = None
+		self.api_type = os.getenv('API_TYPE')
 	
 	def run(self):
 		"""Main agent loop"""
+		start_time = time.time()
 		print(f"🛜 External Analysis Agent")
 		
 		finished = False
@@ -30,56 +37,65 @@ class ExternalAnalysisAgent:
 		while not finished:
 			if empty_responses >= 3:
 				raise ValueError(f"I couldn't complete my task. You must have not passed me the data that I needed. Be sure to send me all of the matchup details.")
+			
 			# Get agent's response
-			response = ollama.chat(
-				model = config.model,
+			base_url = os.getenv('OPEN_AI_BASE_URL')
+			
+			model = os.getenv('ADJUSTMENT_MODEL')
+			
+			client = OpenAI(
+				base_url = base_url,
+				api_key = "no-key-needed"
+			)
+			
+			response = client.chat.completions.create(
+				model = model,
 				messages = messages,
 				tools = self.__get_tool_definition()
 			)
+
+			msg = response.choices[0].message
+			messages.append(msg.model_dump(exclude_none=True))
 			
-			msg = response['message']
-			messages.append(response['message'])
-			
-			if not msg.get('thinking') and not msg.get('content') and not msg.get('tool_calls'):
+			#print(msg.content)
+		
+			if not msg.content and not msg.tool_calls:
 				empty_responses += 1
-			
+				
 			print(f"\n{'='*80}")
 			print(f"🛜 External Analysis Agent Response")
 			print(f"{'='*80}\n")
 			
-			# Show the thinking (chain-of-thought)
-			if msg.thinking:
-				print(f"🧠 REASONING:")
-				print(f"{msg.thinking}\n")
-				
+			# Show the thinking (chain-of-thought)				
 			if msg.content:
 				print(f"💬 EXPLANATION:")
 				print(f"{msg.content}\n")
-
-			if msg.get('tool_calls'):
+	
+			if msg.tool_calls:
 				# Process tool calls
-				for tool_call in response['message']['tool_calls']:
-					print(f"Agent is calling a tool: { tool_call['function']['name'] }")
+				for tool_call in msg.tool_calls:
 					result = self.__execute_tool(tool_call)
 					
 					# Add tool result to messages
 					messages.append({
 						'role': 'tool',
+						'tool_call_id': tool_call.id,
 						'content': json.dumps(result)
 					})
 					
-			elif msg.get('content'):
-				if '[' in msg.content or '{' in msg.content:
-					messages.append({
-						'role': 'user',
-						'content': 'You must CALL the save_analysis tool with that data. Do not just show me the JSON. Actually invoke the save_analysis function.'
-					})
-				elif 'external analysis complete' in msg.content.lower():
-					print(f"🛜 Exiting External Analysis Agent")
-					finished = True
-					return self.analysis
+					if tool_call.function.name == 'save_analysis':
+						print(f"🛜 Exiting External Analysis Agent")
+						print(f"Completed in { round(time.time() - start_time, 3) }s")
+						print(f"{'='*80}\n")
+						return self.analysis
+
+					
+			else:
+				messages.append({
+					'role': 'user',
+					'content': 'You must CALL the save_analysis tool with that data. Do not just show me the JSON. Actually invoke the save_analysis function.'
+				})
 						
-			print(f"{'='*80}\n")
 		
 	def __get_system_prompt(self):
 		"""System prompt with full context"""
@@ -155,9 +171,7 @@ class ExternalAnalysisAgent:
 		  ]
 		}
 		
-		Do NOT add extra braces or formatting.
-		
-		After you have successfully called the save_analysis tool, respond with 'external analysis complete'"""
+		Do NOT add extra braces or formatting."""
 			
 	def __get_initial_prompt(self):
 		"""Initial user message to start the agent"""
@@ -217,8 +231,8 @@ class ExternalAnalysisAgent:
 	
 	def __execute_tool(self, tool_call):
 		"""Execute the tool function"""
-		function_name = tool_call['function']['name']
-		arguments = tool_call['function']['arguments']
+		function_name = tool_call.function.name
+		arguments = json.loads(tool_call.function.arguments)
 		
 		if function_name == 'save_analysis':
 			

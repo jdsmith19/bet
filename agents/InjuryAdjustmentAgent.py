@@ -1,10 +1,15 @@
+from dotenv import load_dotenv
+import os
 import config
 import json
-import ollama
 import config
+from openai import OpenAI
 from helpers.Lookup import Lookup
 from tools.adjust_aggregates_tools import adjust_data_aggregates
 from DataAggregate.DataAggregate import DataAggregate
+import time
+
+load_dotenv()
 
 class InjuryAdjustmentAgent:
 	def __init__(self, injury_report, current_aggregates = None):
@@ -13,11 +18,16 @@ class InjuryAdjustmentAgent:
 			self.aggregates = DataAggregate(config.odds_api_key)
 		else:
 			self.aggregates = current_aggregates
+		self.api_type = os.getenv('API_TYPE')
 	
 	def run(self):
+		start_time = time.time()
 		"""Main agent loop"""
-		print(f"🏭 Starting Injury Adjustment Agent")
-		
+		print(f"🏭 Starting Injury Adjustment Agent\n")
+		if not self.injury_report:
+			print("No relevant injuires found.")
+			return self.aggregates
+
 		finished = False
 		
 		# Initialize conversation with system prompt
@@ -34,49 +44,46 @@ class InjuryAdjustmentAgent:
 					'role': 'user',
 					'content': 'You MUST CALL the adjust_data_aggregates tool with data in the OUTPUT FORMAT.'
 				})
-				
-			# Get agent's response
-			response = ollama.chat(
-				model = config.adjustment_model,
+			
+			base_url = os.getenv('OPEN_AI_BASE_URL')			
+			model = os.getenv('ADJUSTMENT_MODEL')
+
+			client = OpenAI(
+				base_url = base_url,
+				api_key = "no-key-needed"
+			)
+
+			response = client.chat.completions.create(
+				model = model,
 				messages = messages,
 				tools = self.__get_tool_definition()
 			)
-			msg = response['message']
-			messages.append(response['message'])
+			msg = response.choices[0].message
+			messages.append(msg.model_dump(exclude_none=True))
 			
-			if not msg.get('thinking') and not msg.get('content') and not msg.get('tool_calls'):
+			if not msg.content and not msg.tool_calls:
 				empty_responses += 1
 			
-			print(f"\n{'='*80}")
-			print(f"🏭 Injury Adjustment Agent Response")
-			print(f"{'='*80}\n")
-			
-			# Show the thinking (chain-of-thought)
-			if msg.thinking:
-				print(f"🧠 REASONING:")
-				print(f"{msg.thinking}\n")
-				
-			if msg.content:
-				print(f"💬 EXPLANATION:")
-				print(f"{msg.content}\n")
-
-			if msg.get('tool_calls'):
+			if msg.tool_calls:
 				# Process tool calls
-				for tool_call in response['message']['tool_calls']:
+				for tool_call in msg.tool_calls:
 					result = self.__execute_tool(tool_call)
 					
 					# Add tool result to messages
 					messages.append({
 						'role': 'tool',
+						'tool_call_id': tool_call.id,
 						'content': json.dumps(result)
 					})
-			elif msg.content:							
-				if 'injury report complete' in msg.content.lower():
-					print(f"🏭 Exiting Injury Adjustment Agent")
-					finished = True
-					return self.aggregates
-						
-			print(f"{'='*80}\n")
+					
+					if tool_call.function.name == 'adjust_data_aggregates':
+						print(f"🏭 Exiting Injury Adjustment Agent. Completed in { round(time.time() - start_time, 3) }s")
+						print(f"{'='*80}\n")
+						return self.aggregates
+			else:
+				print(f"\n{'='*80}")
+				print(f"🏭 Injury Adjustment Agent Response")
+				print(f"{'='*80}\n")								
 		
 	def __get_system_prompt(self):
 		"""System prompt with full context"""
@@ -190,8 +197,8 @@ class InjuryAdjustmentAgent:
 	
 	def __execute_tool(self, tool_call):
 		"""Execute the tool function"""
-		function_name = tool_call['function']['name']
-		arguments = tool_call['function']['arguments']
+		function_name = tool_call.function.name
+		arguments = json.loads(tool_call.function.arguments)
 		
 		if function_name == 'adjust_data_aggregates':
 			normalized_adjustments = []

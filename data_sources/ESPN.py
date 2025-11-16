@@ -74,8 +74,7 @@ class NFLDepthChartAnalyzer:
 		"""Parse ESPN depth charts using dual-table structure"""
 		url = f"https://www.espn.com/nfl/team/depth/_/name/{team_abbr}"
 		response = requests.get(url, headers=self.headers)
-		soup = BeautifulSoup(response.content, 'html.parser')
-		
+		soup = BeautifulSoup(response.content, 'html.parser')		
 		depth_chart = []
 		responsive_tables = soup.find_all('div', class_='ResponsiveTable')
 		
@@ -134,7 +133,7 @@ class NFLDepthChartAnalyzer:
 							'player_url': player_url,
 							'injury_status': injury_status
 						})
-		
+
 		return pd.DataFrame(depth_chart)
 	
 	def get_player_stats(self, player_id, season=2024):
@@ -219,7 +218,6 @@ class NFLDepthChartAnalyzer:
 																	stats[header] = cell_text
 															except:
 																stats[header] = cell_text
-								
 								return stats
 				
 				i += 1
@@ -895,7 +893,7 @@ class NFLDepthChartAnalyzer:
 		"""Enhanced injury analysis - only include players who see playing time"""
 		df = self.get_team_depth_chart(team_abbr)
 		injured = df[df['injury_status'].notna() & (df['injury_status'] != '')]
-		
+
 		if injured.empty:
 			return pd.DataFrame()
 		
@@ -933,10 +931,8 @@ class NFLDepthChartAnalyzer:
 			
 			position_label = f"{injured_player['position']}{injured_player['depth']}"
 			is_starter = injured_player['depth'] == 1
-			
-			# Use normalized position for consistency
+						# Use normalized position for consistency
 			normalized_pos = injured_player['normalized_position']
-			
 			impact_report.append({
 				'team': team_abbr.upper(),
 				'position': normalized_pos,
@@ -956,7 +952,8 @@ class NFLDepthChartAnalyzer:
 				'position_weight': self.position_weights.get(normalized_pos, 0.5),
 				'playing_time_threshold': self.playing_time_thresholds.get(normalized_pos, 2)
 			})
-		
+		if not impact_report:
+			return pd.DataFrame()
 		return pd.DataFrame(impact_report).sort_values('impact_score', ascending=False).reset_index(drop=True)
 	
 	def get_injury_summary_for_agent(self, team_abbr):
