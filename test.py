@@ -1,3 +1,5 @@
-from tools.feature_refinement import train_and_evaluate_model
+from data_sources.ProFootballReference import ProFootballReference
 
-train_and_evaluate_model('XGBoost', ['foo'])
+pfr = ProFootballReference()
+
+pfr.get_data(['2025'])

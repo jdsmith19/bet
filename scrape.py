@@ -7,11 +7,11 @@ pfr = ProFootballReference()
 def load_history_to_db():
 	# Set all historical data from 2011 to 2024 -- this should be a one-time thing
 	#data = pfr.get_historical_data(range(2011, 2025))
-	data = pfr.get_historical_data([2011])
+	data = pfr.get_data([2011])
 	
 	print("Created DataFrames...")
-	print(data['events'].info())
-	print(data['game_data'].info())
+	# print(data['events'].info())
+	# print(data['game_data'].info())
 	
 	conn = sqlite3.connect('db/historical_data.db')
 	data['events'].to_sql('event', conn, if_exists='replace', index=False)
@@ -21,10 +21,10 @@ def load_history_to_db():
 	conn.execute("CREATE UNIQUE INDEX idx_team_result ON team_result(event_id, team)")
 	conn.close()
 
-#load_history_to_db()
+load_history_to_db()
 
 def load_recent_to_db():
-	data = pfr.get_historical_data([2025])
+	data = pfr.get_data([2025])
 	
 	conn = sqlite3.connect('db/historical_data.db')
 	existing_events = pd.read_sql("SELECT event_id FROM event", conn)
@@ -32,6 +32,8 @@ def load_recent_to_db():
 	
 	new_events = data['events'][~data['events']['event_id'].isin(existing_ids)]
 	new_events.to_sql('event', conn, if_exists='append', index=False)
+	new_upcoming_events = data['upcoming_events'][~data['upcoming_events']['event_id'].isin(existing_ids)]
+	new_upcoming_events.to_sql('event', conn, if_exists='append', index=False)
 	
 	existing_results = pd.read_sql("SELECT event_id, team FROM team_result", conn)
 	existing_keys = set(zip(existing_results['event_id'], existing_results['team']))

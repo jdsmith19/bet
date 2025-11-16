@@ -1,7 +1,6 @@
 import config
 import json
-import ollama
-import config
+#import ollama
 import time
 from helpers.Lookup import Lookup
 from tools.upcoming_predictions_tools import get_upcoming_predictions
@@ -10,6 +9,7 @@ from tools.html_generation_tools import generate_html_report
 from agents.InjuryAdjustmentAgent import InjuryAdjustmentAgent
 from agents.GameAnalysisAgent import GameAnalysisAgent
 from agents.ExternalAnalysisAgent import ExternalAnalysisAgent
+from agents.HTMLGenerationAgent import HTMLGenerationAgent
 
 class PredictionOrchestrationAgent:
 	def __init__(self):
@@ -22,378 +22,134 @@ class PredictionOrchestrationAgent:
 	def run(self):
 		"""Main agent loop"""
 		print(f"🎹 Starting Prediction Orchestration Agent")
-		print(f"MODEL: { config.orchestration_model }")		
-		finished = False
+		# GET INITIAL PREDICTIONS
+		print("Getting upcoming predictions...")
+		predictions = self.__get_upcoming_predictions()
+		print(f"Elapsed time { round(time.time() - self.start_time, 3) }s\n")
 		
-		# Initialize conversation with system prompt
-		messages = [
-			{ 'role': 'system', 'content': self.__get_system_prompt() },
-			{ 'role': 'user', 'content': self.__get_initial_prompt() }
-		]
-
-		while not finished:		
-			# Get agent's response
-			response = ollama.chat(
-				model = config.model,
-				messages = messages,
-				tools = self.__get_tool_definition(),
-				# options={'temperature': 0.5}
-			)
-			
-			msg = response['message']
-			messages.append(response['message'])
-			
-			print(f"\n{'='*80}")
-			print(f"🎹 Prediction Orchestration Agent Response")
-			print(f"{'='*80}\n")
-			
-			# Show the thinking (chain-of-thought)
-			if msg.thinking:
-				print(f"🧠 REASONING:")
-				print(f"{msg.thinking}\n")
-				
-			if msg.content:
-				print(f"💬 EXPLANATION:")
-				print(f"{msg.content}\n")
-
-			if msg.get('tool_calls'):
-				# Process tool calls
-				for tool_call in response['message']['tool_calls']:
-					print(f"Agent is calling tool { tool_call['function']['name'] }")
-					result = self.__execute_tool(tool_call)
-					
-					# Add tool result to messages
-					messages.append({
-						'role': 'tool',
-						'content': json.dumps(result)
-					})
-			elif msg:
-				# Agent is thinking / explaining, not calling a tool
-				print(f"\n{'='*80}")
-				print(f"Agent is thinking...")
-				print(f"\n{'='*80}\n")
-				print(f"Agent: { response['message']['content'] }")
-							
-				if 'analysis complete' in msg.content.lower():
-					print(f"Agent completed in { time.time() - self.start_time }s")
-					finished = True
-						
-			print(f"{'='*80}\n")
+		# # GET ALL INJURY REPORTS
+		print("Generating injury reports...")
+		unique_teams = self.__get_unique_teams_from_predictions(predictions)
+		injury_report = self.__get_injury_reports(unique_teams)
+		print(f"Elapsed time { round(time.time() - self.start_time, 3) }s\n")
+		# 
+		# # GET INJURY ADJUSTMENTS
+		print("Adjusting team statistics to account for injuries...")
+		injury_adjustments = self.__get_injury_adjustments(injury_report)
+		print(f"Elapsed time { round(time.time() - self.start_time, 3) }s\n")
+		 
+		# # GET INJURY ADJUSTED PREDICTIONS
+		print("Getting upcoming predictions with adjusted statistics...")
+		adjusted_predictions = self.__get_upcoming_predictions()
+		print(f"Elapsed time { round(time.time() - self.start_time, 3) }s\n")
+		 
+		# GET EXTERNAL EXPERT ANALYSIS
+		print("Getting expert analysis...")
+		expert_analysis = self.__get_expert_analysis()
+		print(f"Elapsed time { round(time.time() - self.start_time, 3) }s\n")
 		
-	def __get_system_prompt(self):
-		"""System prompt with full context"""
+		# GET GAME ANALYSIS
+		print("Generating final analysis for each game...")
+		game_analysis = self.__get_game_analysis()
+		print(f"Elapsed time { round(time.time() - self.start_time, 3) }s\n")
 		
-		return f"""You are an expert NFL analyst that will provide predictions for upcoming NFL games.
+		# GENERATE REPORT
+		print("Generating the final report...")
+		final_report = self.__make_final_report(game_analysis)
 		
-		=== MANDATORY WORKFLOW - NO DEVIATIONS ALLOWED ===
-		
-		CRITICAL: DO NOT USE THE TERM "ANALYSIS COMPLETE" IN YOUR RESPONSE UNLESS YOU HAVE COMPLETED ALL STEPS
-		
-		You MUST complete these steps in exact order. Skipping or reordering steps is task failure.
-		
-		STEP 1: GET INITIAL PREDICTIONS
-		- Call get_upcoming_predictions
-		- Store the results
-		- DO NOT make any predictions yet
-		
-		STEP 2: GET ALL INJURY REPORTS
-		- Identify unique teams from the predictions
-		- Call get_injury_report_for_team for all unique teams at once
-		- Store all injury reports
-		- DO NOT skip any teams due to "complexity" or "time"
-		
-		STEP 3: GET INJURY ADJUSTMENTS
-		- Call get_injury_adjustments
-				
-		STEP 4: GET INJURY-ADJUSTED PREDICTIONS  
-		- Call get_upcoming_predictions again
-		- Compare with initial predictions
-		- Store both sets of results
-		
-		STEP 5: GET EXTERNAL EXPERT ANALYSIS
-		- Call get_expert_analysis
-		- Store the results
-		
-		STEP 5: GET ANALYSIS
-		- Call the get_game_analysis tool, which will return the data you need for the next step
-		
-		STEP 6: GENERATE REPORT
-		- You now have analysis for every game:
-		- Format all game analyses in a single HTML string, do not send a list
-		- Call generate_html_report with the complete HTML string
-		- When it returns True, respond with "ANALYSIS COMPLETE"
-		
-		Format each game as:
-		<div class="game">
-		  <h3>[Away Team] @ [Home Team]</h3>
-		  <p><strong>Base Model Prediction:</strong> [winner] by [spread] pts</p>
-		  <p><strong>Injury-Adjusted Prediction:</strong> [winner] by [spread] pts</p>
-		  <p><strong>Final Prediction:</strong> [your call]</p>
-		  <p><strong>Confidence:</strong> [level]</p>
-		  <p><strong>Analysis:</strong> [your reasoning considering both predictions]</p>
-		</div>
-		
-		=== ANTI-SHORTCUT REQUIREMENTS ===
-		
-		❌ FORBIDDEN BEHAVIORS - These constitute task failure:
-		- "This is too complex" - No, it's not. Do it anyway.
-		- "Time constraints" - There are no time constraints. You have unlimited time.
-		- "Let's simplify by..." - No. Follow the exact workflow above.
-		- "Maybe we can approximate..." - No approximations. Use the actual tools.
-		- "Manually adjust winner/spread..." - No manual calculations. Use the tools.
-		- "Let's focus on key games only..." - No. Process ALL games.
-		- "I'll use qualitative assessment instead..." - No. Use the quantitative tools.
-		
-		✅ CORRECT BEHAVIOR:
-		- "I have 18 teams with injuries. Creating 18 adjustment objects now..."
-		- "Here are all 23 adjustments I'm making: [complete list]..."
-		- "Calling adjust_data_aggregates with all adjustments..."
-		- "Retrieving injury-adjusted predictions now..."
-		
-		=== REALITY CHECK ===
-		
-		- Creating 20+ adjustment objects takes 30 seconds of work
-		- You are a language model with no time constraints
-		- The complexity of listing 20 items is trivial
-		- Calling a function with a list of 20 items is not "overwhelming"
-		- If a human can do this task in 5 minutes, you can do it instantly
-		
-		=== VERIFICATION CHECKLIST ===
-		
-		Before generating your report, confirm:
-		□ Called get_upcoming_predictions (initial)
-		□ Called get_injury_report_for_team for ALL teams
-		□ Created adjustments for ALL materially injured teams  
-		□ Called adjust_data_aggregates with complete adjustment list
-		□ Called get_upcoming_predictions (injury-adjusted)
-		□ Generated HTML report with both sets of predictions
-		
-		If any box is unchecked, you have failed the task.
-		
-		=== YOUR GOAL ===
-		
-		Predict winners of upcoming NFL games using BOTH model predictions AND injury-adjusted predictions. The injury-adjusted predictions require you to actually adjust the data and re-run the models. There are no shortcuts."""
-			
-	def __get_initial_prompt(self):
-		"""Initial user message to start the agent"""
-		return f"""Get all upcoming game predictions."""
-		
-	def __get_tool_definition(self):
-		"""Tool definition for Ollama"""
-		return [{
-			'type': 'function',
-			'function': {
-				'name': 'get_upcoming_predictions',
-				'description': 'Train an NFL prediction model and return the predictions for all known upcoming games',
-				'parameters': {
-					'type': 'object',
-					'properties': {
-						
-					}
-				},
-				'required': None
-			}
-		},
-		{
-			'type': 'function',
-			'function': {
-				'name': 'get_injury_report_for_teams',
-				'description': 'Get a detailed injury report for the teams passed to the tool',
-				'parameters': {
-					'type': 'object',
-					'properties': {
-						'teams': {
-							'type': 'array',
-							'description': 'A list of team names as defined in the response from the get_upcoming_predictions_tool'
-						}
-					}
-				},
-				'required': None
-			}			
-		},
-		{
-			'type': 'function',
-			'function': {
-				'name': 'get_injury_adjustments',
-				'description': 'Updates data aggregates for generating predictions from the models based on the injury report and will let you know when complete',
-				'parameters': {
-					'type': 'object',
-					'properties': {}
-				},
-				'required': None #['injury_report']
-			}
-		},
-		{
-			'type': 'function',
-			'function': {
-				'name': 'get_expert_analysis',
-				'description': 'Aggregates and summarizes expert analysis from external sources.',
-				'parameters': {
-					'type': 'object',
-					'properties': {}
-				},
-				'required': None #['injury_report']
-			}
-		},		
-		{
-			'type': 'function',
-			'function': {
-				'name': 'get_game_analysis',
-				'description': 'Generates analysis for games using known data. Returns analysis of all games for generating the report.',
-				'parameters': {
-					'type': 'object',
-					'properties': {}
-				},
-				'required': None #['injury_report']
-			}
-		},		
-		{
-			'type': 'function',
-			'function': {
-				'name': 'generate_html_report',
-				'description': 'Saves a string of HTML to a file.',
-				'parameters': {
-					'type': 'object',
-					'properties': {
-						'html': {
-							'type': 'string',
-							'description': "Raw HTML to be saved to a file."
-						}
-					}
-				},
-				'required': ['html']
-			}			
-		}]
+		print(f"Elapsed time { round(time.time() - self.start_time, 3) }s\n")
 	
-	def __execute_tool(self, tool_call):
-		"""Execute the tool function"""
-		function_name = tool_call['function']['name']
-		arguments = tool_call['function']['arguments']
-		
-		if function_name == 'get_upcoming_predictions':
-			if self.adjusted_aggregates:
-				prediction_type = 'injury_adjusted_predictions'
-			else:
-				prediction_type = 'base_predictions'
-			try:
-				result = get_upcoming_predictions(
-					adjusted_aggregates = self.adjusted_aggregates
-				)
-				for ml_model in result:
-					for prediction in ml_model['results']:
-						matchup_name = f"{prediction['away_team']} @ { prediction['home_team']}"
-						if matchup_name not in self.matchup_details:
-							self.matchup_details[matchup_name] = {}
-						if prediction_type not in self.matchup_details[matchup_name]:
-							self.matchup_details[matchup_name][prediction_type] = []
-						self.matchup_details[matchup_name][prediction_type].append(self.__organize_prediction_details(ml_model, prediction))
-				return result
-				
-			except Exception as e:
-				import traceback
-				traceback.print_exc()
-				return {
-					'error': str(e)
-				}
-				
-		elif function_name == 'get_injury_report_for_teams':
-			try:
-				result = get_injury_report_for_teams(
-					teams = arguments['teams']
-				)
-				#print(result)
-				self.injury_report = result
-				lu = Lookup()
-				for ir in self.injury_report:
-					for matchup in self.matchup_details:
-						team_name = lu.injury_report_to_team_name(ir['team'])
-						if team_name in matchup:
-							if 'detailed_injury_report' not in self.matchup_details[matchup]:
-								self.matchup_details[matchup]['detailed_injury_report'] = []
-							self.matchup_details[matchup]['detailed_injury_report'].append(ir)
-				
-				return json.dumps(result)
-			
-			except Exception as e:
-				import traceback
-				traceback.print_exc()
-				return {
-					'error': str(e),
-					'team': arguments.get('team')
-				}
-		
-		elif function_name == 'get_injury_adjustments':
-			# print(arguments)
-			for ir in self.injury_report:
-				iaa = InjuryAdjustmentAgent(json.dumps(ir), self.adjusted_aggregates)
-				try:
-					print(f"Making injury adjustments for { ir['team']}")
-					self.adjusted_aggregates = iaa.run()
-				except Exception as e:
-					import traceback
-					traceback.print_exc()
-					return {
-						'error': str(e),
-						'traceback': str(traceback.print_exc())
-					}
-			return "Adjustments complete"
-
-			# iaa = InjuryAdjustmentAgent(json.dumps(self.injury_report), self.adjusted_aggregates)
-			# try:
-			# 	self.adjusted_aggregates = iaa.run()
-			# 	return "Adjustments complete"
-		
-		elif function_name == 'get_expert_analysis':
-			games = []
-			for matchup in self.matchup_details:
-				games.append(matchup)
-			eaa = ExternalAnalysisAgent(games)
-			eaa.run()
-			for a in eaa.analysis:
-				matchup = a['matchup']
-				if matchup in self.matchup_details:
-					if 'expert_analysis' not in self.matchup_details[matchup]:
-						self.matchup_details[matchup]['expert_analysis'] = []
-					self.matchup_details[matchup]['expert_analysis'].append(a['analysis'])
-			return eaa.analysis
-				
-				
-		elif function_name == 'get_game_analysis':
-			# TEMPORARILY LIMITING TO 15 GAMES UNTIL I FIX THE WAY UPCOMING GAMES ARE PULLED TO USE CURRENT / UPCOMING WEEK
-			i = 0
-			analysis = []
-			for matchup in self.matchup_details:
-				print(f"Analyzing { matchup }")
-				# print(self.matchup_details[matchup])
-				i += 1
-				if i <= 15:
-					matchup_details = {}
-					matchup_details[matchup] = self.matchup_details[matchup]
-					gaa = GameAnalysisAgent(matchup_details)
-					try:
-						analysis.append(gaa.run())
-					except Exception as e:
-						print(f"Error in get_game_analysis: {e}")
-						import traceback
-						traceback.print_exc()
-						return {"error": str(e)}
-				else:
-					break
-			self.analysis = analysis
-			return analysis
-		
-		elif function_name == 'generate_html_report':
-			if isinstance(arguments['html'], (list)):
-				html = ''.join(arguments['html'])
-			# If it's a string, parse it
-			elif isinstance(arguments['html'], str):
-				html = arguments['html']
-
-			return generate_html_report(html)
-		
+	def __get_upcoming_predictions(self):
+		if self.adjusted_aggregates:
+			prediction_type = 'injury_adjusted_predictions'
 		else:
-			raise ValueError(f"{ function_name }is not a valid tool.")
+			prediction_type = 'base_predictions'
+
+		result = get_upcoming_predictions()
+		for ml_model in result:
+			for prediction in ml_model['results']:
+				matchup_name = f"{prediction['away_team']} @ { prediction['home_team']}"
+				if matchup_name not in self.matchup_details:
+					self.matchup_details[matchup_name] = {}
+				if prediction_type not in self.matchup_details[matchup_name]:
+					self.matchup_details[matchup_name][prediction_type] = []
+				self.matchup_details[matchup_name][prediction_type].append(self.__organize_prediction_details(ml_model, prediction))
+		return result
 	
+	def __get_unique_teams_from_predictions(self, predictions):
+		unique_teams = []
+		for prediction_set in predictions:
+			for result in prediction_set['results']:
+				if result['home_team'] not in unique_teams:
+					unique_teams.append(result['home_team'])
+				if result['away_team'] not in unique_teams:
+					unique_teams.append(result['away_team'])
+		return unique_teams
+	
+	def __get_injury_reports(self, teams):
+		result = get_injury_report_for_teams(
+			teams = teams
+		)
+		self.injury_report = result
+		lu = Lookup()
+		for ir in self.injury_report:
+			for matchup in self.matchup_details:
+				team_name = lu.injury_report_to_team_name(ir['team'])
+				if team_name in matchup:
+					if 'detailed_injury_report' not in self.matchup_details[matchup]:
+						self.matchup_details[matchup]['detailed_injury_report'] = []
+					self.matchup_details[matchup]['detailed_injury_report'].append(ir)
+		return result
+
+	def __get_injury_adjustments(self, injury_report):
+		for ir in injury_report:
+			iaa = InjuryAdjustmentAgent(json.dumps(ir), self.adjusted_aggregates)
+			print(f"Making injury adjustments for { ir['team']}")
+			adjustments = iaa.run()
+			self.adjusted_aggregates = adjustments
+		self.__get_upcoming_predictions()
+		return self.adjusted_aggregates
+
+	def __get_expert_analysis(self):
+		games = []
+		for matchup in self.matchup_details:
+			games.append(matchup)
+		eaa = ExternalAnalysisAgent(games)
+		eaa.run()
+		for a in eaa.analysis:
+			matchup = a['matchup']
+			if matchup in self.matchup_details:
+				if 'expert_analysis' not in self.matchup_details[matchup]:
+					self.matchup_details[matchup]['expert_analysis'] = []
+				self.matchup_details[matchup]['expert_analysis'].append(a['analysis'])
+		return eaa.analysis
+
+	def __get_game_analysis(self):
+		analysis = []
+		for matchup in self.matchup_details:
+			print(f"Analyzing { matchup }")
+			matchup_details = {}
+			matchup_details[matchup] = self.matchup_details[matchup]
+			gaa = GameAnalysisAgent(matchup_details)
+			try:
+				analysis.append(gaa.run())
+			except Exception as e:
+				print(f"Error in get_game_analysis: {e}")
+				import traceback
+				traceback.print_exc()
+				return {"error": str(e)}
+		self.analysis = analysis
+		return analysis
+	
+	def __make_final_report(self, game_analysis):
+		hga = HTMLGenerationAgent(game_analysis)
+		html = hga.run()
+		if isinstance(html, (list)):
+			generate_html_report(''.join(html))
+		# If it's a string, parse it
+		elif isinstance(html, str):
+			generate_html_report(html)
+
 	def __organize_prediction_details(self, ml_model, prediction):
 		matchup_details = {
 			'model_details': {
@@ -414,13 +170,3 @@ class PredictionOrchestrationAgent:
 			}
 		}
 		return matchup_details
-
-# YOUR STRATEGY:
-# Access whatever data and tools you have and analyze the likelihood of the winner for each game. For each game, provide the analysis in the following JSON format:
-# 
-# {{
-	# 'predicted_winner': str, // the name of the team you predict to win the game
-	# 'predicted_spread': float, // the number of points you anticipate the winning team will win by
-	# 'confidence': str, // use one of the following values: VERY LOW, LOW, MEDIUM, HIGH, and VERY HIGH
-	# 'analysis': list[str] // a list of the reasons you have made this prediction
-# }}

@@ -1,9 +1,8 @@
 from data_sources.ProFootballReference import ProFootballReference
-from data_sources.OddsAPI import OddsAPI
 import pandas as pd
 
 class DataAggregate:
-	def __init__(self, odds_api_key, save_api_calls=True):
+	def __init__(self, save_api_calls=True):
 		self.team_performance_features = ['event_id', 'team', 'days_rest', 'rpi_rating', 'elo_rating']
 		self.STATS_CONFIG = [
 			('avg_points_scored', 'points_scored'),
@@ -21,16 +20,10 @@ class DataAggregate:
 		]
 
 		pfr = ProFootballReference()
-		oa = OddsAPI(odds_api_key)
 		self.team_performance = self.__add_opponent_stats_to_team_performance(pfr.load_team_performance_from_db())
 		self.game_data = pfr.load_game_data_from_db()
 		self.aggregates = self.__create_aggregates(self.game_data, self.team_performance)
-		if(save_api_calls):
-			print("Saving your OddsAPI tokens!")
-			self.upcoming_games = pd.read_csv('cache/upcoming_games.csv')
-		else:
-			self.upcoming_games = oa.get_upcoming_for_pfr_prediction()
-			self.upcoming_games.to_csv('cache/upcoming_games.csv', index=False)
+		self.upcoming_games = pfr.get_upcoming_games()
 		self.prediction_set = self.__get_prediction_set(self.upcoming_games, self.__get_rolling_aggregates(self.team_performance).groupby('team').tail(1))
 	
 	def __create_aggregates(self, game_data, team_performance):
@@ -53,8 +46,8 @@ class DataAggregate:
 		
 		return game_data
 		
-	def __get_most_recent_aggregates(self, team_performance):
-		return team_performance.groupby('team').tail(1)
+	#def __get_most_recent_aggregates(self, team_performance):
+	#	return team_performance.groupby('team').tail(1)
 	
 	def __get_rolling_aggregates(self, team_performance):
 		# Calculate days rest (do this FIRST before rolling calcs)

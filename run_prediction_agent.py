@@ -1,4 +1,4 @@
-from agents.PredictionOrchestrationAgent_D import PredictionOrchestrationAgent
+from agents.PredictionOrchestrationAgent import PredictionOrchestrationAgent
 
 pa = PredictionOrchestrationAgent()
 pa.run()
