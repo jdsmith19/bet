@@ -63,7 +63,7 @@ class BillSimmonsPodcast:
                 return data
             
             if data['status'] == "failed":
-                print(f"Job failed: { data["error"] }")
+                print(f"Job failed: { data['error'] }")
                 return data
 
             time.sleep(2)
