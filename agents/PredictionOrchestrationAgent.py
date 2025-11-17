@@ -10,6 +10,9 @@ from agents.InjuryAdjustmentAgent import InjuryAdjustmentAgent
 from agents.GameAnalysisAgent import GameAnalysisAgent
 from agents.ExternalAnalysisAgent import ExternalAnalysisAgent
 from agents.HTMLGenerationAgent import HTMLGenerationAgent
+from agents.PodcastSummarizationAgent import PodcastSummarizationAgent
+from data_sources.BillSimmonsPodcast import BillSimmonsPodcast
+import tiktoken
 
 class PredictionOrchestrationAgent:
 	def __init__(self):
@@ -18,31 +21,41 @@ class PredictionOrchestrationAgent:
 		self.injury_report = None
 		self.matchup_details = {}
 		self.analysis = {}
+		self.week = 0
+		self.season = 0
 	
 	def run(self):
 		"""Main agent loop"""
 		print(f"🎹 Starting Prediction Orchestration Agent")
+
 		# GET INITIAL PREDICTIONS
 		print("Getting upcoming predictions...")
 		predictions = self.__get_upcoming_predictions()
+		self.week = predictions['prediction_set']['season_week_number'].unique()[0]
+		self.season = predictions['prediction_set']['season'].unique()[0]
 		print(f"Elapsed time { round(time.time() - self.start_time, 3) }s\n")
 		
-		# # GET ALL INJURY REPORTS
+		# GET ALL INJURY REPORTS
 		print("Generating injury reports...")
 		unique_teams = self.__get_unique_teams_from_predictions(predictions)
 		injury_report = self.__get_injury_reports(unique_teams)
 		print(f"Elapsed time { round(time.time() - self.start_time, 3) }s\n")
-		# 
-		# # GET INJURY ADJUSTMENTS
+		
+		# GET INJURY ADJUSTMENTS
 		print("Adjusting team statistics to account for injuries...")
 		injury_adjustments = self.__get_injury_adjustments(injury_report)
 		print(f"Elapsed time { round(time.time() - self.start_time, 3) }s\n")
 		 
-		# # GET INJURY ADJUSTED PREDICTIONS
+		# GET INJURY ADJUSTED PREDICTIONS
 		print("Getting upcoming predictions with adjusted statistics...")
 		adjusted_predictions = self.__get_upcoming_predictions()
 		print(f"Elapsed time { round(time.time() - self.start_time, 3) }s\n")
 		 
+		# GET PODCAST SUMMARIES
+		print("Listening to Guess the Lines with Cousin Sal and summarizing insights")
+		gtl_summary = self.__get_podcast_analysis('guess_the_lines')
+		print(f"Elapsed time { round(time.time() - self.start_time, 3) }s\n")
+		
 		# GET EXTERNAL EXPERT ANALYSIS
 		print("Getting expert analysis...")
 		expert_analysis = self.__get_expert_analysis()
@@ -64,21 +77,21 @@ class PredictionOrchestrationAgent:
 			prediction_type = 'injury_adjusted_predictions'
 		else:
 			prediction_type = 'base_predictions'
-
+		
 		result = get_upcoming_predictions()
-		for ml_model in result:
-			for prediction in ml_model['results']:
+		for item in result['predictions']:
+			for prediction in item['results']:
 				matchup_name = f"{prediction['away_team']} @ { prediction['home_team']}"
 				if matchup_name not in self.matchup_details:
 					self.matchup_details[matchup_name] = {}
 				if prediction_type not in self.matchup_details[matchup_name]:
 					self.matchup_details[matchup_name][prediction_type] = []
-				self.matchup_details[matchup_name][prediction_type].append(self.__organize_prediction_details(ml_model, prediction))
+				self.matchup_details[matchup_name][prediction_type].append(self.__organize_prediction_details(item, prediction))
 		return result
 	
 	def __get_unique_teams_from_predictions(self, predictions):
 		unique_teams = []
-		for prediction_set in predictions:
+		for prediction_set in predictions['predictions']:
 			for result in prediction_set['results']:
 				if result['home_team'] not in unique_teams:
 					unique_teams.append(result['home_team'])
@@ -124,12 +137,41 @@ class PredictionOrchestrationAgent:
 				self.matchup_details[matchup]['expert_analysis'].append(a['analysis'])
 		return eaa.analysis
 
+	def __get_podcast_analysis(self, podcast):
+		games = []
+		for matchup in self.matchup_details:
+			games.append(matchup)
+
+		bsp = BillSimmonsPodcast(week = self.week, season = self.season)
+		transcription = bsp.transcribe_episode(episode_type = podcast)
+		chunked_transcription = bsp.chunk_transcription(transcription['result'], chunk_size = 2500, overlap = 250)
+		chunks = []
+		summaries = []
+		for chunk in chunked_transcription:
+			encoding = tiktoken.get_encoding("cl100k_base")  # Used by GPT-4, close enough for most models
+			tokens = len(encoding.encode(chunk))
+			chunks.append(chunk)
+			print(f"Estimating { tokens } tokens. Sending to LLM.\n")
+			psa = PodcastSummarizationAgent(games, chunk)
+			summary = psa.run()
+			if not json.loads(summary):
+				continue
+			for s in json.loads(summary):
+				summaries.append(summary)
+				self.matchup_details.setdefault(s, {}).setdefault('podcast_analysis', []).append(s)
+		
+		return summaries
+		
+
 	def __get_game_analysis(self):
 		analysis = []
 		for matchup in self.matchup_details:
 			print(f"Analyzing { matchup }")
 			matchup_details = {}
 			matchup_details[matchup] = self.matchup_details[matchup]
+			encoding = tiktoken.get_encoding("cl100k_base")  # Used by GPT-4, close enough for most models
+			tokens = len(encoding.encode(json.dumps(matchup_details)))
+			print(f"Estimating { tokens } tokens. Sending to LLM.\n")
 			gaa = GameAnalysisAgent(matchup_details)
 			try:
 				analysis.append(gaa.run())

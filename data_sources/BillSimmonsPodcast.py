@@ -46,9 +46,7 @@ class BillSimmonsPodcast:
         )
         
         data = r.text
-        print(data)
         data = json.loads(r.text)
-        print(data)
 
         job_id = data['job_id']
 
@@ -58,16 +56,24 @@ class BillSimmonsPodcast:
             status_check_url = self.whisper_server_url + "/transcribe/" + job_id
             r = requests.get(status_check_url)
             data = r.text
-            print(data)
             data = json.loads(data)
-            print(data)
             
             if data['status'] == "completed":
                 print(f"Job completed in {data['time_in_seconds']}")
                 return data
             
             if data['status'] == "failed":
-                print(f"Job failed")
+                print(f"Job failed: { data["error"] }")
                 return data
 
             time.sleep(2)
+    
+    def chunk_transcription(self, segments, chunk_size=50, overlap=10):
+        chunks = []
+        i = 0
+        while i < len(segments):
+            chunk_segment = segments[i:i + chunk_size]
+            chunk_text = ' '.join(s['text'] for s in chunk_segment)
+            chunks.append(chunk_text)
+            i += (chunk_size - overlap)
+        return chunks

@@ -99,7 +99,7 @@ class ExternalAnalysisAgent:
 		
 	def __get_system_prompt(self):
 		"""System prompt with full context"""
-		return f"""You are a research agent that gathers and summarizes expert NFL analysis.
+		return f"""You are a research agent that extracts PREDICTIVE NFL analysis from expert sources.
 		
 		INPUT: A list of NFL matchups
 		
@@ -117,6 +117,31 @@ class ExternalAnalysisAgent:
 		- DO NOT just describe what you would pass to the tool
 		- The ONLY way to complete this task is by calling save_analysis
 		
+		WHAT TO INCLUDE (High Value):
+		✓ Current injuries to key players
+		✓ Recent performance trends (last 3-4 games)
+		✓ Head-to-head matchup advantages (O-line vs D-line, secondary vs receivers)
+		✓ Weather impact for this specific game
+		✓ Coaching/scheme advantages
+		✓ Motivation factors (playoff implications, divisional rivalry)
+		✓ Rest advantages/disadvantages
+		✓ Home/away splits THIS season
+		✓ Key statistical mismatches (e.g., "#1 rush defense vs #32 run offense")
+
+		WHAT TO EXCLUDE (Low Value):
+		✗ Historical records beyond current season (e.g., "8-2 in November over last 5 years")
+		✗ Arbitrary date-range statistics (e.g., "6-1 in games after a loss since 2021")
+		✗ All-time series records
+		✗ Career stats for players no longer relevant
+		✗ Vague statements without specifics (e.g., "strong defense")
+		✗ Stadium trivia or historical facts
+		✗ Cherry-picked statistical splits without context
+
+		QUALITY TEST:
+		Ask yourself: "Would this insight help predict THIS WEEK'S game?"
+		- If it's about current form, injuries, or matchups → INCLUDE
+		- If it's a historical fun fact or arbitrary split → EXCLUDE
+
 		MATCHUPS TO ANALYZE:
 		{self.games}
 		
@@ -131,7 +156,21 @@ class ExternalAnalysisAgent:
 		  }}
 		]
 		
-		After successfully calling save_analysis, respond with 'external analysis complete'"""
+		EXAMPLES:
+
+		GOOD KEY POINTS:
+		- "Chiefs missing LT Jawaan Taylor (ankle), backup gave up 3 sacks last week"
+		- "Broncos rush defense ranks 3rd, allowing 89 ypg, while Chiefs average 145 rushing ypg"
+		- "Game-time temp expected 15°F with 20mph winds, historically reduces scoring by 8 points"
+		- "Eagles 5-0 at home this season, averaging 31 ppg vs 22 ppg on road"
+
+		BAD KEY POINTS:
+		- "Cowboys are 12-4 in December games over the last 5 seasons"
+		- "This will be the 47th meeting between these teams"
+		- "Raiders have won 6 of last 10 after a bye week since 2018"
+		- "Team has strong defensive tradition dating back to 1970s"
+		
+		Focus on CURRENT SEASON context and SPECIFIC matchup factors that impact THIS game."""
 		
 		return f"""You are a research agent that is responsible for gathering expert NFL analysis for upcoming games from the web and summrizing them with key details.
 		

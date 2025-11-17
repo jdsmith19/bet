@@ -87,6 +87,7 @@ class GameAnalysisAgent:
 			- Injury Adjusted Prediction Data: Data from multiple machine learning models that predict the outcome of games where the prediction is calculated based on baseline data adjusted from injury reports.
 			- Injury Report: A detailed injury report for the team
 			- Expert Analysis: Summaries of expert analysis about the upcoming game. Should be compared against the Machine Learning Model results
+			- Podcast Analysis: A summary of analysis from The Bill Simmons Podcast for the upcoming game. Should be compared against the Machine Learning Model results
 		
 		OUTPUT:
 		- An object containing some of the details passed to you along with your analysis and final prediction based on all available information

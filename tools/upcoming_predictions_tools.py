@@ -83,7 +83,7 @@ def get_upcoming_predictions(adjusted_aggregates = None) -> dict:
 				results = kn.predict_winner(da.prediction_set)
 				predictions.append(kn.model_output)
 				
-		return predictions
+		return { 'predictions': predictions, 'prediction_set': da.prediction_set }
 	
 	except Exception as e:
 		return traceback.print_exc()
