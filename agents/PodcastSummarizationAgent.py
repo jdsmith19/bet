@@ -140,39 +140,6 @@ class PodcastSummarizationAgent:
 		
 		ONLY include games where the transcript chunk actually discusses them.
 		Return {{}} if no games mentioned."""
-
-		return f"""You are analyzing an NFL podcast transcript for betting insights.
-
-		This week's games:
-
-		{ "\n• ".join(self.games) }
-
-		Transcript chunk:
-		
-		{ self.chunk }
-
-		If this chunk discusses any of this week's games, extract betting-relevant insights, including:
-		- injuries
-		- matchups
-		- weather
-		- coaching factors
-		- picks
-		- team / matchup sentiments
-		- betting lines
-		- hot / cold players
-
-		Summarize 1 - 3 key insights for each team.
-
-		Return JSON:
-
-		{{
-			// GAME 1
-			// FOR AWAY @ HOME, YOU MUST USE THE FULL TEXT FROM THIS WEEK'S GAMES ABOVE
-			"Away @ Home": ["key point 1", "key point 2"],
-			// GAME 2
-			"Away @ Home": ["key point 1", "key point 2"]
-			// ...
-		}}"""
 			
 	def __get_initial_prompt(self):
 		"""Initial user message to start the agent"""
