@@ -79,12 +79,13 @@ class PodcastSummarizationAgent:
 						
 		
 	def __get_system_prompt(self):
+		separator = "\n• "
 		"""System prompt with full context"""
 		
 		return f"""You are extracting NFL betting insights from a podcast transcript.
 
 		THIS WEEK'S GAMES:
-		{"\n• ".join(self.games)}
+		{separator.join(self.games)}
 
 		TRANSCRIPT CHUNK:
 		{self.chunk}
@@ -144,7 +145,7 @@ class PodcastSummarizationAgent:
 
 		This week's games:
 
-		{ f"\n• ".join(self.games) }
+		{ "\n• ".join(self.games) }
 
 		Transcript chunk:
 		
