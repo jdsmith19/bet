@@ -144,7 +144,7 @@ class PodcastSummarizationAgent:
 
 		This week's games:
 
-		{ "\n• ".join(self.games) }
+		{ f"\n• ".join(self.games) }
 
 		Transcript chunk:
 		
