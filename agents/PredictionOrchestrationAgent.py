@@ -38,6 +38,7 @@ class PredictionOrchestrationAgent:
 
 		# GET INITIAL PREDICTIONS
 		predictions = self.__get_upcoming_predictions()
+		print(predictions)
 		self.week = predictions['prediction_set']['season_week_number'].unique()[0]
 		self.season = predictions['prediction_set']['season'].unique()[0]
 		
