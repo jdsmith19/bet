@@ -37,7 +37,6 @@ class BillSimmonsPodcast:
                     'media_url': item['enclosure']['@url'],
                     'save_filename': f'guess_the_lines_{self.season}_week_{self.week}.mp3'
                 }
-                print(episode_details)
                 return episode_details
         return {
             'error': 'No Guess the Lines episode found for this week.',
