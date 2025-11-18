@@ -1,8 +1,9 @@
 from data_sources.ProFootballReference import ProFootballReference
 import pandas as pd
+from tqdm import tqdm
 
 class DataAggregate:
-	def __init__(self, save_api_calls=True):
+	def __init__(self):
 		self.team_performance_features = ['event_id', 'team', 'days_rest', 'rpi_rating', 'elo_rating']
 		self.STATS_CONFIG = [
 			('avg_points_scored', 'points_scored'),
@@ -20,11 +21,24 @@ class DataAggregate:
 		]
 
 		pfr = ProFootballReference()
-		self.team_performance = self.__add_opponent_stats_to_team_performance(pfr.load_team_performance_from_db())
-		self.game_data = pfr.load_game_data_from_db()
-		self.aggregates = self.__create_aggregates(self.game_data, self.team_performance)
-		self.upcoming_games = pfr.get_upcoming_games()
-		self.prediction_set = self.__get_prediction_set(self.upcoming_games, self.__get_rolling_aggregates(self.team_performance).groupby('team').tail(1))
+		with tqdm(total=100, desc="Loading data aggregates") as pbar:
+			pbar.write("\n💿 Loading data aggregates")
+			pbar.set_description("Loading game data")
+			self.game_data = pfr.load_game_data_from_db()
+			pbar.update(20)
+			pbar.set_description("Loading team performance")
+			self.team_performance = self.__add_opponent_stats_to_team_performance(pfr.load_team_performance_from_db())
+			pbar.update(20)
+			pbar.set_description("Creating aggregates")
+			self.aggregates = self.__create_aggregates(self.game_data, self.team_performance)
+			pbar.update(20)
+			pbar.set_description("Getting upcoming games")
+			self.upcoming_games = pfr.get_upcoming_games()
+			pbar.update(20)
+			pbar.set_description("Creating prediction aggregates")
+			self.prediction_set = self.__get_prediction_set(self.upcoming_games, self.__get_rolling_aggregates(self.team_performance).groupby('team').tail(1))
+			pbar.update(20)
+			pbar.set_description("DONE")
 	
 	def __create_aggregates(self, game_data, team_performance):
 		team_performance_with_rolling_aggregates = self.__get_rolling_aggregates(team_performance)

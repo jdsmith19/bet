@@ -6,8 +6,8 @@ from prediction_models.LogisticRegression import LogisticRegression
 from prediction_models.KNearest import KNearest
 import time
 import json
-import config
 import traceback
+from tqdm import tqdm
 
 def get_upcoming_predictions(adjusted_aggregates = None) -> dict:
 	"""
@@ -45,19 +45,24 @@ def get_upcoming_predictions(adjusted_aggregates = None) -> dict:
 	with open("feature_optimization_results.json", "r") as f:
 		feature_optimization_results = json.load(f)
 	
-	if(adjusted_aggregates):
-		print(f"Running predictions with adjusted aggregates")
+	if adjusted_aggregates is not None:
 		da = adjusted_aggregates
 	else:
-		print(f"Loading data aggregates")
-		da = DataAggregate(config.odds_api_key)
+		da = DataAggregate()
 	
 	start_time = time.time()
 	
 	predictions = []
 	
 	try:
+		if adjusted_aggregates:
+			label = "🔮 Making adjusted predictions"
+		else:
+			label = "🔮 Making predictions"
+		pbar = tqdm(feature_optimization_results['best_results'], desc=(label))
+		pbar.write(f"\n{label}")
 		for best_combo in feature_optimization_results['best_results']:
+			pbar.set_description(best_combo)
 			if best_combo == 'XGBoost':
 				xgb = XGBoost(da, feature_optimization_results['best_results'][best_combo]['target'], feature_optimization_results['best_results'][best_combo]['features_used'])
 				results = xgb.predict_spread(da.prediction_set)
@@ -82,8 +87,11 @@ def get_upcoming_predictions(adjusted_aggregates = None) -> dict:
 				kn = KNearest(da, feature_optimization_results['best_results'][best_combo]['target'], feature_optimization_results['best_results'][best_combo]['features_used'])
 				results = kn.predict_winner(da.prediction_set)
 				predictions.append(kn.model_output)
-				
-		return { 'predictions': predictions, 'prediction_set': da.prediction_set }
+			
+			pbar.update(1)
+		pbar.set_description("DONE")
+
+		return { 'predictions': predictions, 'prediction_set': da.prediction_set, 'full_aggregates': da }
 	
 	except Exception as e:
 		return traceback.print_exc()

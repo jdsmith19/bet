@@ -11,11 +11,14 @@ class HTMLGenerationAgent:
 		"""Main agent loop"""
 		start_time = time.time()
 		self.analysis = analysis
-		print(f"👨🏻‍💻 Starting HTML Generation Agent")
+		self.debug = False
 
 	def run(self):
 		start_time = time.time()
 		finished = False
+
+		if self.debug:
+			print(f"👨🏻‍💻 Starting HTML Generation Agent")
 		
 		# Initialize conversation with system prompt
 		messages = [
@@ -99,6 +102,4 @@ class HTMLGenerationAgent:
 		"""Initial user message to start the agent"""
 		return f"""Generate HTML from the following game_analysis list
 		
-		{ self.analysis }
-		
-		"""
+		{ self.analysis }"""

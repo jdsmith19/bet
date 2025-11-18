@@ -14,18 +14,22 @@ load_dotenv()
 class InjuryAdjustmentAgent:
 	def __init__(self, injury_report, current_aggregates = None):
 		self.injury_report = injury_report
-		if not current_aggregates:
+		if current_aggregates is None:
+			print(f"current_aggregates is None, need to load")
 			self.aggregates = DataAggregate(config.odds_api_key)
 		else:
 			self.aggregates = current_aggregates
 		self.api_type = os.getenv('API_TYPE')
+		self.debug = False
 	
 	def run(self):
 		start_time = time.time()
 		"""Main agent loop"""
-		print(f"🏭 Starting Injury Adjustment Agent\n")
+		if self.debug:
+			print(f"🏭 Starting Injury Adjustment Agent\n")
 		if not self.injury_report:
-			print("No relevant injuires found.")
+			if self.debug:
+				print("No relevant injuires found.")
 			return self.aggregates
 
 		finished = False
@@ -77,13 +81,15 @@ class InjuryAdjustmentAgent:
 					})
 					
 					if tool_call.function.name == 'adjust_data_aggregates':
-						print(f"🏭 Exiting Injury Adjustment Agent. Completed in { round(time.time() - start_time, 3) }s")
-						print(f"{'='*80}\n")
+						if self.debug:
+							print(f"🏭 Exiting Injury Adjustment Agent. Completed in { round(time.time() - start_time, 3) }s")
+							print(f"{'='*80}\n")
 						return self.aggregates
 			else:
-				print(f"\n{'='*80}")
-				print(f"🏭 Injury Adjustment Agent Response")
-				print(f"{'='*80}\n")								
+				if self.debug:
+					print(f"\n{'='*80}")
+					print(f"🏭 Injury Adjustment Agent Response")
+					print(f"{'='*80}\n")								
 		
 	def __get_system_prompt(self):
 		"""System prompt with full context"""
@@ -215,7 +221,7 @@ class InjuryAdjustmentAgent:
 						}
 
 						
-				normalized_adjustments.append({ 'team_name': team_abbr, 'feature': adj['feature'], 'adjustment_percentage': adj['adjustment_percentage'] })
+				normalized_adjustments.append({ 'team_name': team_abbr, 'feature': adj['feature'], 'full_': adj['adjustment_percentage'] })
 			try:
 				result = adjust_data_aggregates(
 					adjustments = normalized_adjustments,

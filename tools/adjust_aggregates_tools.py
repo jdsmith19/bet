@@ -15,8 +15,8 @@ def adjust_data_aggregates(adjustments: list, da: DataAggregate = None) -> DataA
 	Returns:
 		DataAggregate: A DataAggregate object with updated values
 	"""
-	if not da:
-		print(f"Loading data aggregates")
+	if da is None:
+		# Shouldn't need this call anymore, but just in case
 		da = DataAggregate(config.odds_api_key)
 	for adj in adjustments:
 		home_cols_to_update = [col for col in da.prediction_set.columns if (adj['feature'] in col and '_away' not in col)]

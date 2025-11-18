@@ -18,11 +18,13 @@ class ExternalAnalysisAgent:
 		self.games = games
 		self.analysis = None
 		self.api_type = os.getenv('API_TYPE')
+		self.debug = False
 	
 	def run(self):
 		"""Main agent loop"""
 		start_time = time.time()
-		print(f"🛜 External Analysis Agent")
+		if self.debug:
+			print(f"🛜 External Analysis Agent")
 		
 		finished = False
 		
@@ -56,20 +58,19 @@ class ExternalAnalysisAgent:
 
 			msg = response.choices[0].message
 			messages.append(msg.model_dump(exclude_none=True))
-			
-			#print(msg.content)
-		
+					
 			if not msg.content and not msg.tool_calls:
 				empty_responses += 1
-				
-			print(f"\n{'='*80}")
-			print(f"🛜 External Analysis Agent Response")
-			print(f"{'='*80}\n")
 			
-			# Show the thinking (chain-of-thought)				
-			if msg.content:
-				print(f"💬 EXPLANATION:")
-				print(f"{msg.content}\n")
+			if self.debug:
+				print(f"\n{'='*80}")
+				print(f"🛜 External Analysis Agent Response")
+				print(f"{'='*80}\n")
+			
+				# Show the thinking (chain-of-thought)				
+				if msg.content:
+					print(f"💬 EXPLANATION:")
+					print(f"{msg.content}\n")
 	
 			if msg.tool_calls:
 				# Process tool calls
@@ -84,9 +85,10 @@ class ExternalAnalysisAgent:
 					})
 					
 					if tool_call.function.name == 'save_analysis':
-						print(f"🛜 Exiting External Analysis Agent")
-						print(f"Completed in { round(time.time() - start_time, 3) }s")
-						print(f"{'='*80}\n")
+						if self.debug:
+							print(f"🛜 Exiting External Analysis Agent")
+							print(f"Completed in { round(time.time() - start_time, 3) }s")
+							print(f"{'='*80}\n")
 						return self.analysis
 
 					

@@ -13,11 +13,13 @@ class PodcastSummarizationAgent:
 		self.games = games
 		self.chunk = chunk
 		self.summary = None
+		self.debug = False
 	
 	def run(self):
 		"""Main agent loop"""
 		start_time = time.time()
-		print(f"🎤 Starting Podcast Summarization Agent")
+		if self.debug == True:
+			print(f"🎤 Starting Podcast Summarization Agent")
 		
 		finished = False
 		
@@ -45,13 +47,14 @@ class PodcastSummarizationAgent:
 			msg = response.choices[0].message
 			messages.append(msg.model_dump(exclude_none=True))
 			
-			print(f"\n{'='*80}")
-			print(f"🎤 Podcast Summarization Agent Response")
-			print(f"{'='*80}\n")
+			if self.debug == True:
+				print(f"\n{'='*80}")
+				print(f"🎤 Podcast Summarization Agent Response")
+				print(f"{'='*80}\n")
 							
-			if msg.content:
-				print(f"💬 EXPLANATION:")
-				print(f"{msg.content}\n")
+				if msg.content:
+					print(f"💬 EXPLANATION:")
+					print(f"{msg.content}\n")
 
 			if msg.tool_calls:
 				# Process tool calls
@@ -66,9 +69,10 @@ class PodcastSummarizationAgent:
 					})
 					
 					if tool_call.function.name == 'save_summary' and self.summary is not None:
-						print(f"🎤 Exiting Podcast Summarization Agent")
-						print(f"Completed in { round(time.time() - start_time, 3) }s")
-						print(f"{'='*80}\n")
+						if self.debug == True:
+							print(f"🎤 Exiting Podcast Summarization Agent")
+							print(f"Completed in { round(time.time() - start_time, 3) }s")
+							print(f"{'='*80}\n")
 						return self.summary
 					
 			else:
