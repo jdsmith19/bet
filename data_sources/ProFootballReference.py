@@ -11,6 +11,7 @@ class ProFootballReference:
 			'crd', 'atl', 'rav', 'buf', 'car', 'chi', 'cin', 'cle', 'dal', 'den', 'det', 'gnb', 'htx', 'clt', 'jax', 'kan',
 			'sdg', 'ram', 'rai', 'mia', 'min', 'nwe', 'nor', 'nyg', 'nyj', 'phi', 'pit', 'sea', 'sfo', 'tam', 'oti', 'was'
 		]
+		self.debug = False
 
 	def get_data(self, seasons):
 		start_time = time.time()
@@ -165,27 +166,28 @@ class ProFootballReference:
 		
 		for season in seasons:
 			for team in self.teams:
+				game_data_url = f'https://www.pro-football-reference.com/teams/{team}/{str(season)}/gamelog/'
+				print(game_data_url)
+				tm_df = pd.read_html(game_data_url, header=1, attrs={'id': table_id})[0]
 				for table_id in ['table_pfr_team-year_game-logs_team-year-regular-season-game-log','table_pfr_team-year_game-logs_team-year-playoffs-game-log']:
 					try:
-						game_data_url = f'https://www.pro-football-reference.com/teams/{team}/{str(season)}/gamelog/'
-						print(game_data_url)
-						tm_df = pd.read_html(game_data_url, header=1, attrs={'id': table_id})[0]
-						tm_df = tm_df.drop(columns=['Rk'], axis=1)
-						tm_df = tm_df.rename(col_rename_dict, axis=1)
-						tm_df = tm_df.dropna(subset=['season_week_number'])
-						tm_df['season'] = season
+						tb_tm_df = tm_df
+						tb_tm_df = tb_tm_df.drop(columns=['Rk'], axis=1)
+						tb_tm_df = tb_tm_df.rename(col_rename_dict, axis=1)
+						tb_tm_df = tb_tm_df.dropna(subset=['season_week_number'])
+						tb_tm_df['season'] = season
 						if(table_id == 'table_pfr_team-year_game-logs_team-year-playoffs-game-log'):
-							tm_df['is_playoffs'] = 1
+							tb_tm_df['is_playoffs'] = 1
 						else:
-							tm_df['is_playoffs'] = 0
-						tm_df['team'] = team
-						tm_df['season_week_number'] = tm_df['season_week_number'].astype(int)
-						tm_df['is_neutral'] = np.where(tm_df['is_home'] == 'N', 1, 0)
-						tm_df['is_home'] = np.where(tm_df['is_home'] == '@', 0, 1)
-						tm_df['opponent_raw'] = tm_df['opponent']
-						tm_df['opponent'] = tm_df['opponent'].map(opp_to_pfr_code)
-						tm_df['home_team'] = np.where(tm_df['is_home'] == 1, team, tm_df['opponent'])
-						tm_df['away_team'] = np.where(tm_df['is_home'] == 1, tm_df['opponent'], team)
+							tb_tm_df['is_playoffs'] = 0
+						tb_tm_df['team'] = team
+						tb_tm_df['season_week_number'] = tb_tm_df['season_week_number'].astype(int)
+						tb_tm_df['is_neutral'] = np.where(tb_tm_df['is_home'] == 'N', 1, 0)
+						tb_tm_df['is_home'] = np.where(tb_tm_df['is_home'] == '@', 0, 1)
+						tb_tm_df['opponent_raw'] = tb_tm_df['opponent']
+						tb_tm_df['opponent'] = tb_tm_df['opponent'].map(opp_to_pfr_code)
+						tb_tm_df['home_team'] = np.where(tb_tm_df['is_home'] == 1, team, tb_tm_df['opponent'])
+						tb_tm_df['away_team'] = np.where(tb_tm_df['is_home'] == 1, tb_tm_df['opponent'], team)
 						# DON'T THINK I NEED THIS ANYMORE, BUT KEEPING JUST IN CASE
 						# unmapped = tm_df[tm_df['opponent'].isna()]
 						# if len(unmapped) > 0:
@@ -193,33 +195,35 @@ class ProFootballReference:
 						# 	print(unmapped[['season', 'team', 'opponent_raw', 'opponent']].drop_duplicates('opponent_raw'))
 						# 	print("\nUnique unmapped values:", unmapped['Opp'].unique())
 						# Little trick here, if it's a neutral site have to make sure the event_id is created consistently so order alphabetically
-						tm_df['event_id'] = np.where(
-							tm_df['is_neutral'] == 1,
-							tm_df['season'].astype(str) + '_' + tm_df['season_week_number'].astype(str) + '_' + np.minimum(tm_df['team'], tm_df['opponent']) + '_' + np.maximum(tm_df['team'], tm_df['opponent']),
-							(tm_df['season'].astype(str) + '_' + tm_df['season_week_number'].astype(str) + '_' + tm_df['home_team'] + '_' + tm_df['away_team'])
+						tb_tm_df['event_id'] = np.where(
+							tb_tm_df['is_neutral'] == 1,
+							tb_tm_df['season'].astype(str) + '_' + tb_tm_df['season_week_number'].astype(str) + '_' + np.minimum(tb_tm_df['team'], tb_tm_df['opponent']) + '_' + np.maximum(tb_tm_df['team'], tb_tm_df['opponent']),
+							(tb_tm_df['season'].astype(str) + '_' + tb_tm_df['season_week_number'].astype(str) + '_' + tb_tm_df['home_team'] + '_' + tb_tm_df['away_team'])
 						)
 						
-						up_df = tm_df[tm_df['team_game_number'].isna()].copy()
+						up_df = tb_tm_df[tb_tm_df['team_game_number'].isna()].copy()
 						up_df['event_id'] = np.where(
 							up_df['is_neutral'] == 1,
 							up_df['season'].astype(str) + '_' + up_df['season_week_number'].astype(str) + '_' + np.minimum(up_df['team'], up_df['opponent']) + '_' + np.maximum(up_df['team'], up_df['opponent']),
 							(up_df['season'].astype(str) + '_' + up_df['season_week_number'].astype(str) + '_' + up_df['home_team'] + '_' + up_df['away_team'])
 						)
 						up_df['is_complete'] = 0
-						tm_df['is_complete'] = 1
-						tm_df = tm_df.dropna(subset=['team_game_number', 'win'])
-						tm_df['team_game_number'] = tm_df['team_game_number'].astype(int)
-						tm_df['win'] = np.where(tm_df['win'] == 'W', 1, 0)
-						tm_df['overtime'] = np.where(tm_df['overtime'] == 'OT', 1, 0)
+						tb_tm_df['is_complete'] = 1
+						tb_tm_df = tb_tm_df.dropna(subset=['team_game_number', 'win'])
+						tb_tm_df['team_game_number'] = tb_tm_df['team_game_number'].astype(int)
+						tb_tm_df['win'] = np.where(tb_tm_df['win'] == 'W', 1, 0)
+						tb_tm_df['overtime'] = np.where(tb_tm_df['overtime'] == 'OT', 1, 0)
 
-						event_df = pd.concat([event_df, tm_df[event_columns].copy()], ignore_index=True)
+						event_df = pd.concat([event_df, tb_tm_df[event_columns].copy()], ignore_index=True)
 						up_event_df = pd.concat([up_event_df, up_df[event_columns].copy()], ignore_index = True)
-						game_data_df = pd.concat([game_data_df, tm_df[game_data_columns].copy()], ignore_index = True)
+						game_data_df = pd.concat([game_data_df, tb_tm_df[game_data_columns].copy()], ignore_index = True)
 						
 					# except(ValueError, IndexError):
 					# 	print(f"No playoff data found for {team} in {season}")
 					except (ValueError, IndexError):
-						print(f"No playoff data found for {team} in {season}")
+						pass
+						if self.debug:
+							#print(f"No playoff data found for {team} in {season}")
 					except Exception as e:
 						print(f"Unexpected error for {team} in {season}: {e}")
 						print(traceback.format_exc())

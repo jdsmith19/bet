@@ -42,7 +42,6 @@ def load_recent_to_db():
 		INSERT OR REPLACE INTO event ({event_cols})
 		SELECT {event_cols} FROM event_temp
 	"""
-	print(on_conflict_query)
 	conn.execute(on_conflict_query)
 	conn.execute("DROP TABLE event_temp")
 
